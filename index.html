@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>WA | ANONIMO</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23000' rx='24'/%3E%3Ccircle cx='50' cy='50' r='42' fill='%2325D366'/%3E%3Cpath fill='%23121a2a' d='M50,23 L70,36 L70,64 L50,77 L30,64 L30,36 L50,23Z' opacity='0.9'/%3E%3Ctext x='50' y='58' font-size='22' text-anchor='middle' fill='white' font-weight='bold'%3E?!%3C/text%3E%3Ctext x='50' y='82' font-size='9' text-anchor='middle' fill='%23e0f2fe'%3Eanon%3C/text%3E%3C/svg%3E">
+    <!-- Favicon generado con CSS puro (data:image/svg+xml) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23121a2a' rx='24'/%3E%3Ccircle cx='50' cy='50' r='42' fill='%2325D366'/%3E%3Cpath fill='%23000' d='M50,23 L70,36 L70,64 L50,77 L30,64 L30,36 L50,23Z' opacity='0.9'/%3E%3Ctext x='50' y='58' font-size='22' text-anchor='middle' fill='white' font-weight='bold'%3E?!%3C/text%3E%3C/svg%3E">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * {
@@ -22,58 +23,115 @@
             min-height: 100vh;
         }
 
-        /* contenedor compacto pero legible */
         .container {
             max-width: 1300px;
             margin: 0 auto;
         }
 
-        /* ===== HEADER ===== */
-        .hero {
+        /* ===== BANNER CON TÍTULO Y LOGOTIPO CSS ===== */
+        .hero-banner {
+            margin-bottom: 2rem;
             text-align: center;
-            margin-bottom: 1.4rem;
+            position: relative;
         }
 
-        .logo-svg {
+        /* Logotipo CSS puro (icono animado) */
+        .css-logo {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 12px;
             background: rgba(0, 0, 0, 0.55);
-            backdrop-filter: blur(12px);
-            padding: 0.35rem 1.6rem;
-            border-radius: 80px;
-            border: 1px solid rgba(37, 211, 102, 0.5);
-            margin-bottom: 0.5rem;
-            transition: transform 0.2s;
+            backdrop-filter: blur(16px);
+            padding: 0.6rem 2rem;
+            border-radius: 100px;
+            border: 1px solid rgba(37, 211, 102, 0.4);
+            margin-bottom: 1rem;
+            transition: transform 0.2s ease, box-shadow 0.2s;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
         }
 
-        .logo-svg svg {
-            width: 42px;
-            height: 42px;
+        .css-logo:hover {
+            transform: scale(1.02);
+            border-color: #25D366;
+            box-shadow: 0 10px 25px rgba(37, 211, 102, 0.2);
         }
 
-        .logo-svg h1 {
-            font-size: 1.8rem;
+        /* icono CSS puro: anillo + máscara */
+        .logo-icon {
+            position: relative;
+            width: 48px;
+            height: 48px;
+            background: #25D366;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 0 2px #121a2a, 0 0 0 4px #25D36680;
+        }
+
+        .logo-icon::before {
+            content: "?!";
             font-weight: 800;
-            background: linear-gradient(130deg, #fff, #b9ffcf);
+            font-size: 1.8rem;
+            color: #121a2a;
+            text-shadow: 0 1px 0 rgba(255,255,255,0.2);
+            font-family: monospace;
+        }
+
+        .logo-icon::after {
+            content: "";
+            position: absolute;
+            inset: -3px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.3);
+            animation: pulseRing 1.5s infinite;
+        }
+
+        @keyframes pulseRing {
+            0% { transform: scale(0.9); opacity: 0.8; }
+            100% { transform: scale(1.2); opacity: 0; }
+        }
+
+        .logo-text {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #FFFFFF, #B9FFCF, #25D366);
             background-clip: text;
             -webkit-background-clip: text;
             color: transparent;
-            letter-spacing: -0.3px;
+            letter-spacing: -0.5px;
         }
 
-        .sub {
-            font-size: 0.8rem;
-            background: rgba(15, 25, 45, 0.8);
-            border-radius: 2rem;
-            padding: 0.3rem 1.2rem;
+        /* Banner decorativo con título ampliado */
+        .banner-title {
+            margin-top: 0.2rem;
+        }
+
+        .banner-title h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            background: linear-gradient(125deg, #f0f9ff, #c2ffd6);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            letter-spacing: -0.02em;
+        }
+
+        .banner-sub {
+            font-size: 0.9rem;
+            background: rgba(15, 25, 45, 0.7);
+            backdrop-filter: blur(8px);
             display: inline-block;
-            backdrop-filter: blur(4px);
-            font-weight: 500;
-            color: #b9f5d0;
+            padding: 0.4rem 1.4rem;
+            border-radius: 40px;
+            margin-top: 0.5rem;
+            border: 1px solid rgba(37,211,102,0.3);
+            color: #d0f0e0;
         }
 
-        /* ===== CARDS (más compactas) ===== */
+        /* ===== CARDS ===== */
         .card {
             background: rgba(12, 20, 32, 0.75);
             backdrop-filter: blur(12px);
@@ -82,7 +140,6 @@
             padding: 1.2rem 1.4rem;
             margin-bottom: 1.4rem;
             box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.6);
-            transition: all 0.15s;
         }
 
         .section-title {
@@ -96,7 +153,6 @@
             padding-left: 0.8rem;
         }
 
-        /* ===== FILTROS (compactos y accesibles) ===== */
         .filters-bar {
             display: flex;
             flex-wrap: wrap;
@@ -166,7 +222,6 @@
             border-color: #4c6e9e;
         }
 
-        /* ===== GRID DE NÚMEROS (compacto) ===== */
         .numbers-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
@@ -265,7 +320,7 @@
             text-align: center;
         }
 
-        /* ===== MODALES mejor accesibilidad ===== */
+        /* ===== MODALES ===== */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -319,32 +374,58 @@
             font-weight: 600;
         }
 
-        /* ===== FOOTER ===== */
+        /* ===== NUEVO PIE DE PÁGINA ===== */
         .footer-links {
             display: flex;
+            flex-wrap: wrap;
             justify-content: center;
             gap: 2rem;
-            margin-bottom: 0.8rem;
+            margin-bottom: 1rem;
+            align-items: center;
         }
 
         .footer-links a {
             color: #9eb1cf;
             text-decoration: none;
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             cursor: pointer;
             transition: color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .footer-links a:hover {
             color: #facc15;
         }
 
-        footer {
+        .custom-footer {
             text-align: center;
-            font-size: 0.65rem;
-            color: #7e8cae;
+            font-size: 0.7rem;
+            color: #b9c7e0;
             border-top: 1px solid #1e2a44;
-            padding-top: 0.8rem;
+            padding-top: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .custom-footer p {
+            margin: 0.3rem 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.8rem;
+            align-items: center;
+        }
+
+        .custom-footer a {
+            color: #7e8cae;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .custom-footer a:hover {
+            color: #25D366;
+            text-decoration: underline;
         }
 
         .toast {
@@ -376,7 +457,6 @@
 
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* accesibilidad: focus visible */
         button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible {
             outline: 2px solid #25D366;
             outline-offset: 2px;
@@ -387,35 +467,29 @@
             .card { padding: 1rem; }
             .phone-card { flex-direction: column; align-items: flex-start; gap: 0.6rem; }
             .wa-btn { align-self: flex-end; }
-            .logo-svg h1 { font-size: 1.4rem; }
-            .section-title { font-size: 1rem; }
-        }
-
-        /* mejora contraste textos */
-        .sub, .phone-location, .input-group label {
-            color: #ccddf8;
-        }
-        .phone-number {
-            color: #ffffff;
+            .logo-text { font-size: 1.4rem; }
+            .banner-title h1 { font-size: 1.8rem; }
+            .css-logo { padding: 0.4rem 1.2rem; }
+            .logo-icon { width: 38px; height: 38px; }
+            .logo-icon::before { font-size: 1.4rem; }
         }
     </style>
 </head>
 <body>
 <div class="container">
-    <div class="hero">
-        <div class="logo-svg" role="banner" aria-label="Logo WA Anónimo">
-            <svg viewBox="0 0 100 100" width="42" height="42" aria-hidden="true">
-                <rect width="100" height="100" fill="#000000" rx="24"/>
-                <circle cx="50" cy="50" r="42" fill="#25D366"/>
-                <path fill="#121a2a" d="M50,23 L70,36 L70,64 L50,77 L30,64 L30,36 L50,23Z" opacity="0.9"/>
-                <text x="50" y="58" font-size="22" text-anchor="middle" fill="white" font-weight="bold">?!</text>
-                <text x="50" y="82" font-size="9" text-anchor="middle" fill="#e0f2fe">anon</text>
-            </svg>
-            <h1>WA | ANONIMO</h1>
+    <!-- BANNER CON LOGOTIPO CSS Y TÍTULO -->
+    <div class="hero-banner">
+        <div class="css-logo" aria-label="Logotipo WA Anónimo">
+            <div class="logo-icon" aria-hidden="true"></div>
+            <span class="logo-text">WA | ANONIMO</span>
         </div>
-        <div class="sub" aria-label="Descripción"><i class="fas fa-mask"></i> Contactos anónimos cubanos · Enlace directo WhatsApp · Sin rastreo</div>
+        <div class="banner-title">
+            <h1>Contactos Anónimos<br><span style="font-size:1.8rem;">Cuba</span></h1>
+            <div class="banner-sub"><i class="fas fa-mask"></i> En tiempo real · Directo al whatsapp · Privacidad total</div>
+        </div>
     </div>
 
+    <!-- CARD PRINCIPAL -->
     <div class="card">
         <div class="section-title"><i class="fab fa-whatsapp" aria-hidden="true"></i> <span>Buscar números móviles (WA)</span></div>
         <div class="filters-bar">
@@ -466,18 +540,28 @@
         </div>
     </div>
 
+    <!-- Enlaces legales / políticas -->
     <div class="footer-links">
-        <a id="openPrivacy" role="button" tabindex="0">📜 Política de Privacidad</a>
-        <a id="openTerms" role="button" tabindex="0">⚖️ Términos de Uso</a>
+        <a id="openPrivacy" role="button" tabindex="0"><i class="fas fa-lock"></i> Política de Privacidad</a>
+        <a id="openTerms" role="button" tabindex="0"><i class="fas fa-file-contract"></i> Términos de Uso</a>
     </div>
-    <footer>
-        <i class="fas fa-ban"></i> By "anonimo" · 2025 - 2026
-    </footer>
+
+    <!-- NUEVO PIE DE PÁGINA CON DATOS SOLICITADOS -->
+    <div class="custom-footer">
+        <p>
+            <span><i class="far fa-copyright"></i> Made by: <a href="mailto:cuenta.baneada.temp@gmail.com">cuenta.baneada.temp@gmail.com</a></span>
+            <span>|</span>
+            <span><i class="fab fa-whatsapp"></i> Channel: <a href="https://whatsapp.com/channel/0029VbCdMrUHgZWU8CQ6uu0h" target="_blank" rel="noopener noreferrer">WhatsApp Channel</a></span>
+            <span>|</span>
+            <span><i class="fas fa-globe"></i> Web: <a href="https://cuentabaneadatemp.github.io/web/" target="_blank" rel="noopener noreferrer">cuentabaneadatemp.github.io/web</a></span>
+        </p>
+        <p style="font-size:0.65rem; opacity:0.7;">WA | ANONIMO · 2025 - 2026</p>
+    </div>
 </div>
 
 <div id="toastMsg" class="toast" role="status" aria-live="polite">📋 Copiado</div>
 
-<!-- modales accesibles -->
+<!-- MODALES (sin cambios en contenido) -->
 <div id="privacyModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="privacyTitle">
     <div class="modal-content">
         <h3 id="privacyTitle"><i class="fas fa-lock"></i> Política de Privacidad</h3>
@@ -492,7 +576,7 @@
 <div id="termsModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="termsTitle">
     <div class="modal-content">
         <h3 id="termsTitle"><i class="fas fa-file-contract"></i> Términos de Uso</h3>
-        <p>Al acceder y utilizar "Cuenta Bloqueada", usted acepta cumplir con estos términos. La plataforma se proporciona "tal cual" con fines educativos y de demostración técnica.</p>
+        <p>Al acceder y utilizar "WA | ANONIMO", usted acepta cumplir con estos términos. La plataforma se proporciona "tal cual" con fines educativos y de demostración técnica.</p>
         <p><strong>1. Uso legítimo:</strong> Los números generados no deben utilizarse para actividades ilegales, spam, suplantación de identidad o cualquier acción que viole los derechos de terceros o los términos de servicio de WhatsApp.</p>
         <p><strong>2. Exención de responsabilidad:</strong> No nos hacemos responsables por el mal uso de la información generada ni por las consecuencias derivadas de las interacciones iniciadas a través de los enlaces de WhatsApp. El usuario asume toda la responsabilidad legal y ética.</p>
         <p><strong>3. Propiedad intelectual:</strong> El código y diseño de esta interfaz son propiedad de sus desarrolladores. Queda prohibida la reproducción no autorizada con fines comerciales.</p>
