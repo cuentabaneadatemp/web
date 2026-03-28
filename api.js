@@ -13,20 +13,23 @@
         return `+53 ${raw.slice(0,3)} ${raw.slice(3,5)} ${raw.slice(5)}`;
     }
 
-    function getCityForNumber(selectedCity) {
-        if (selectedCity === "all") return CITIES[Math.floor(Math.random() * CITIES.length)];
-        return selectedCity;
+    function getCityForNumber(selectedCity, preferredCity = null) {
+        if (selectedCity !== "all") return selectedCity;
+        if (preferredCity && CITIES.includes(preferredCity)) return preferredCity;
+        return CITIES[Math.floor(Math.random() * CITIES.length)];
     }
 
-    function generateUniqueNumbers(cityFilter, count, existingSet = new Set(), currentMessage) {
+    function generateUniqueNumbers(cityFilter, count, existingSet = new Set(), currentMessage, preferredCity = null) {
         const newNumbers = [];
         const used = new Set(existingSet);
         let attempts = 0;
-        while (newNumbers.length < count && attempts < 250) {
+        const maxAttempts = 500;
+
+        while (newNumbers.length < count && attempts < maxAttempts) {
             let raw = generateRawCubanMobile();
             if (used.has(raw)) { attempts++; continue; }
             used.add(raw);
-            const city = getCityForNumber(cityFilter);
+            const city = getCityForNumber(cityFilter, preferredCity);
             const formatted = formatNumber(raw);
             const waNumber = `53${raw}`;
             const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(currentMessage)}`;

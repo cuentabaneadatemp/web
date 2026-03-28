@@ -18,6 +18,7 @@
         <div class="banner-title">
             <h1>Contactos Anónimos<br><span style="font-size:1.8rem;">Cuba</span></h1>
             <div class="banner-sub"><i class="fas fa-mask"></i> En tiempo real · Directo al whatsapp · Privacidad total</div>
+            <div class="location-note"><i class="fas fa-map-marker-alt"></i> Nota: Los números pueden no coincidir exactamente con la ubicación seleccionada.</div>
         </div>
     </div>
 
@@ -46,7 +47,7 @@
             </div>
             <div class="input-group">
                 <label>&nbsp;</label>
-                <button id="searchBtn" class="primary" aria-label="Generar lista de números"><i class="fas fa-user-secret"></i> Buscar</button>
+                <button id="searchBtn" class="primary" aria-label="Buscar números"><i class="fas fa-user-secret"></i> Buscar</button>
             </div>
             <div class="input-group">
                 <label>&nbsp;</label>
@@ -55,7 +56,8 @@
         </div>
 
         <div id="numbersContainer">
-            <div class="numbers-grid" id="phoneList" role="list" aria-label="Lista de números generados"><div style="grid-column:1/-1; text-align:center; padding:1.5rem;"><i class="fas fa-spinner fa-pulse"></i> Cargando números seguros...</div></div>
+            <div class="numbers-grid" id="phoneList" role="list" aria-label="Lista de números disponibles"><div style="grid-column:1/-1; text-align:center; padding:1.5rem;"><i class="fas fa-spinner fa-pulse"></i> Cargando números...</div></div>
+            <div class="numbers-counter" id="numbersCounter">0 números disponibles</div>
         </div>
         <div class="load-more">
             <button id="loadMoreBtn" aria-label="Cargar más números"><i class="fas fa-plus-circle"></i> Cargar más</button>
@@ -65,7 +67,7 @@
     <div class="card" style="background: rgba(10,16,28,0.7);">
         <div class="section-title"><i class="fas fa-shield-alt"></i> <span>Modo anónimo · Chatea con privacidad</span></div>
         <div style="display: flex; flex-wrap: wrap; gap: 0.8rem; justify-content: space-between;">
-            <div style="flex:1; min-width:150px;"><i class="fas fa-dice-d6"></i> <strong>Algoritmo real</strong><br>Prefijo cubano +53</div>
+            <div style="flex:1; min-width:150px;"><i class="fas fa-dice-d6"></i> <strong>Números reales</strong><br>Prefijo cubano +53</div>
             <div style="flex:1; min-width:150px;"><i class="fas fa-link"></i> <strong>Enlaces directos</strong><br>Mensaje personalizable</div>
             <div style="flex:1; min-width:150px;"><i class="fas fa-chart-line"></i> <strong>Rendimiento</strong><br>Virtualización ligera</div>
         </div>
@@ -78,7 +80,7 @@
 
     <div class="custom-footer">
         <p>
-            <span><i class="far fa-copyright"></i> Made by: <a href="mailto:cuenta.baneada.temp@gmail.com">cuenta.baneada.temp@gmail.com</a></span>
+            <span><i class="far fa-copyright"></i> Made in: <a href="mailto:cuenta.baneada.temp@gmail.com">cuenta.baneada.temp@gmail.com</a></span>
             <span>|</span>
             <span><i class="fab fa-whatsapp"></i> Channel: <a href="https://whatsapp.com/channel/0029VbCdMrUHgZWU8CQ6uu0h" target="_blank" rel="noopener noreferrer">WhatsApp Channel</a></span>
             <span>|</span>
@@ -89,6 +91,16 @@
 </div>
 
 <div id="toastMsg" class="toast" role="status" aria-live="polite">📋 Copiado</div>
+
+<!-- Modal de aceptación de términos y privacidad -->
+<div id="acceptTermsModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="acceptTitle">
+    <div class="modal-content accept-modal-content">
+        <h3 id="acceptTitle"><i class="fas fa-gavel"></i> Aceptación obligatoria</h3>
+        <p>Para continuar, debes leer y aceptar nuestra <strong>Política de Privacidad</strong> y <strong>Términos de Uso</strong>.</p>
+        <p>Al hacer clic en "Aceptar", confirmas que has leído y comprendido los documentos legales y que aceptas cumplirlos.</p>
+        <button id="acceptTermsBtn" class="primary">Aceptar y continuar</button>
+    </div>
+</div>
 
 <div id="privacyModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="privacyTitle">
     <div class="modal-content">

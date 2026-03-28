@@ -1,3 +1,14 @@
+:root {
+    --bg-dark: #03060c;
+    --bg-card: rgba(12, 20, 32, 0.85);
+    --primary: #25D366;
+    --primary-dark: #1ea952;
+    --text-light: #f0f3fa;
+    --text-muted: #a0b3d9;
+    --border-light: rgba(255,255,255,0.07);
+    --focus-ring: 0 0 0 2px var(--primary);
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -6,8 +17,8 @@
 
 body {
     font-family: system-ui, 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif;
-    background: radial-gradient(ellipse at 30% 10%, #0a0f1c, #03060c);
-    color: #f0f3fa;
+    background: radial-gradient(ellipse at 30% 10%, #0a0f1c, var(--bg-dark));
+    color: var(--text-light);
     line-height: 1.45;
     padding: 1rem;
     min-height: 100vh;
@@ -21,7 +32,6 @@ body {
 .hero-banner {
     margin-bottom: 2rem;
     text-align: center;
-    position: relative;
 }
 
 .css-logo {
@@ -41,7 +51,7 @@ body {
 
 .css-logo:hover {
     transform: scale(1.02);
-    border-color: #25D366;
+    border-color: var(--primary);
     box-shadow: 0 10px 25px rgba(37, 211, 102, 0.2);
 }
 
@@ -49,12 +59,12 @@ body {
     position: relative;
     width: 48px;
     height: 48px;
-    background: #25D366;
+    background: var(--primary);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 0 0 2px #121a2a, 0 0 0 4px #25D36680;
+    box-shadow: 0 0 0 2px #121a2a, 0 0 0 4px rgba(37,211,102,0.5);
 }
 
 .logo-icon::before {
@@ -83,7 +93,7 @@ body {
 .logo-text {
     font-size: 2rem;
     font-weight: 800;
-    background: linear-gradient(135deg, #FFFFFF, #B9FFCF, #25D366);
+    background: linear-gradient(135deg, #FFFFFF, #B9FFCF, var(--primary));
     background-clip: text;
     -webkit-background-clip: text;
     color: transparent;
@@ -114,10 +124,10 @@ body {
 }
 
 .card {
-    background: rgba(12, 20, 32, 0.75);
+    background: var(--bg-card);
     backdrop-filter: blur(12px);
     border-radius: 1.6rem;
-    border: 1px solid rgba(255, 255, 255, 0.07);
+    border: 1px solid var(--border-light);
     padding: 1.2rem 1.4rem;
     margin-bottom: 1.4rem;
     box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.6);
@@ -130,7 +140,7 @@ body {
     align-items: center;
     gap: 0.5rem;
     margin-bottom: 1rem;
-    border-left: 3px solid #25D366;
+    border-left: 3px solid var(--primary);
     padding-left: 0.8rem;
 }
 
@@ -151,7 +161,7 @@ body {
     font-size: 0.7rem;
     font-weight: 600;
     text-transform: uppercase;
-    color: #a0b3d9;
+    color: var(--text-muted);
     margin-bottom: 0.2rem;
     display: flex;
     align-items: center;
@@ -165,7 +175,7 @@ select, input, button {
     border: 1px solid #2d3a5e;
     border-radius: 2rem;
     padding: 0.55rem 1rem;
-    color: #f1f5f9;
+    color: var(--text-light);
     font-weight: 500;
     transition: all 0.2s;
     width: 100%;
@@ -173,9 +183,9 @@ select, input, button {
 }
 
 input:focus, select:focus, button:focus-visible {
-    outline: 2px solid #25D366;
-    outline-offset: 2px;
-    border-color: transparent;
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: var(--focus-ring);
 }
 
 button {
@@ -203,6 +213,12 @@ button:hover {
     border-color: #4c6e9e;
 }
 
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
 .numbers-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
@@ -214,7 +230,7 @@ button:hover {
     background: rgba(0, 0, 0, 0.5);
     border-radius: 1.2rem;
     padding: 0.8rem 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-light);
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -230,7 +246,7 @@ button:hover {
 
 .phone-card:hover {
     background: rgba(37, 211, 102, 0.12);
-    border-color: #25D36680;
+    border-color: rgba(37,211,102,0.5);
 }
 
 .phone-info {
@@ -258,7 +274,7 @@ button:hover {
 }
 
 .wa-btn {
-    background: #25D366;
+    background: var(--primary);
     color: #0a1c0f;
     padding: 0.45rem 1rem;
     border-radius: 2rem;
@@ -274,7 +290,7 @@ button:hover {
 }
 
 .wa-btn:hover {
-    background: #1ea952;
+    background: var(--primary-dark);
     color: white;
     transform: scale(0.96);
 }
@@ -299,6 +315,14 @@ button:hover {
 .load-more {
     margin-top: 1.2rem;
     text-align: center;
+}
+
+.numbers-counter {
+    text-align: right;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+    padding-right: 0.2rem;
 }
 
 .modal-overlay {
@@ -354,6 +378,32 @@ button:hover {
     font-weight: 600;
 }
 
+.accept-modal-content {
+    text-align: center;
+}
+.accept-modal-content button {
+    background: var(--primary);
+    color: #0a1c0f;
+    font-weight: bold;
+    width: auto;
+    padding: 0.6rem 2rem;
+    margin-top: 1rem;
+}
+.accept-modal-content button:hover {
+    background: var(--primary-dark);
+    color: white;
+}
+
+.location-note {
+    font-size: 0.7rem;
+    color: #facc15;
+    margin-top: 0.3rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    justify-content: center;
+}
+
 .footer-links {
     display: flex;
     flex-wrap: wrap;
@@ -403,7 +453,7 @@ button:hover {
 }
 
 .custom-footer a:hover {
-    color: #25D366;
+    color: var(--primary);
     text-decoration: underline;
 }
 
@@ -430,16 +480,11 @@ button:hover {
     height: 1rem;
     border: 2px solid rgba(255,255,255,0.3);
     border-radius: 50%;
-    border-top-color: #25D366;
+    border-top-color: var(--primary);
     animation: spin 0.6s linear infinite;
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
-
-button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible {
-    outline: 2px solid #25D366;
-    outline-offset: 2px;
-}
 
 @media (max-width: 640px) {
     body { padding: 0.6rem; }
