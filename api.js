@@ -33,8 +33,9 @@
             const formatted = formatNumber(raw);
             const waNumber = `53${raw}`;
             const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(currentMessage)}`;
+            const telegramLink = `https://t.me/+53${raw}?text=${encodeURIComponent(currentMessage)}`;
             newNumbers.push({
-                raw, formatted, waLink, city,
+                raw, formatted, waLink, telegramLink, city,
                 id: `${Date.now()}-${raw}-${Math.random()}`
             });
             attempts = 0;

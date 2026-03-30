@@ -1,12 +1,12 @@
 :root {
     --bg-dark: #03060c;
     --bg-card: rgba(12, 20, 32, 0.85);
-    --primary: #25D366;
-    --primary-dark: #1ea952;
+    --primary-wa: #25D366;
+    --primary-tg: #26A5E4;
     --text-light: #f0f3fa;
     --text-muted: #a0b3d9;
     --border-light: rgba(255,255,255,0.07);
-    --focus-ring: 0 0 0 2px var(--primary);
+    --focus-ring: 0 0 0 2px var(--primary-wa);
 }
 
 * {
@@ -51,7 +51,7 @@ body {
 
 .css-logo:hover {
     transform: scale(1.02);
-    border-color: var(--primary);
+    border-color: var(--primary-wa);
     box-shadow: 0 10px 25px rgba(37, 211, 102, 0.2);
 }
 
@@ -59,7 +59,7 @@ body {
     position: relative;
     width: 48px;
     height: 48px;
-    background: var(--primary);
+    background: var(--primary-wa);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -68,12 +68,12 @@ body {
 }
 
 .logo-icon::before {
-    content: "?!";
-    font-weight: 800;
-    font-size: 1.8rem;
+    content: "💬";
+    font-weight: normal;
+    font-size: 2rem;
     color: #121a2a;
     text-shadow: 0 1px 0 rgba(255,255,255,0.2);
-    font-family: monospace;
+    font-family: system-ui, 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif;
 }
 
 .logo-icon::after {
@@ -93,7 +93,7 @@ body {
 .logo-text {
     font-size: 2rem;
     font-weight: 800;
-    background: linear-gradient(135deg, #FFFFFF, #B9FFCF, var(--primary));
+    background: linear-gradient(135deg, #FFFFFF, #B9FFCF, var(--primary-wa));
     background-clip: text;
     -webkit-background-clip: text;
     color: transparent;
@@ -140,7 +140,7 @@ body {
     align-items: center;
     gap: 0.5rem;
     margin-bottom: 1rem;
-    border-left: 3px solid var(--primary);
+    border-left: 3px solid var(--primary-wa);
     padding-left: 0.8rem;
 }
 
@@ -184,7 +184,7 @@ select, input, button {
 
 input:focus, select:focus, button:focus-visible {
     outline: none;
-    border-color: var(--primary);
+    border-color: var(--primary-wa);
     box-shadow: var(--focus-ring);
 }
 
@@ -273,9 +273,13 @@ button:disabled {
     margin-top: 4px;
 }
 
-.wa-btn {
-    background: var(--primary);
-    color: #0a1c0f;
+.chat-buttons {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.wa-btn, .telegram-btn {
     padding: 0.45rem 1rem;
     border-radius: 2rem;
     font-size: 0.75rem;
@@ -289,27 +293,25 @@ button:disabled {
     cursor: pointer;
 }
 
+.wa-btn {
+    background: var(--primary-wa);
+    color: #0a1c0f;
+}
+
 .wa-btn:hover {
-    background: var(--primary-dark);
+    background: #1ea952;
     color: white;
     transform: scale(0.96);
 }
 
-.copy-btn {
-    background: #2d3b54;
-    color: #e2edff;
-    border: none;
-    border-radius: 2rem;
-    padding: 0.2rem 0.7rem;
-    font-size: 0.65rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: 0.15s;
-    width: auto;
+.telegram-btn {
+    background: var(--primary-tg);
+    color: white;
 }
 
-.copy-btn:hover {
-    background: #3e5272;
+.telegram-btn:hover {
+    background: #1c8ed1;
+    transform: scale(0.96);
 }
 
 .load-more {
@@ -382,7 +384,7 @@ button:disabled {
     text-align: center;
 }
 .accept-modal-content button {
-    background: var(--primary);
+    background: var(--primary-wa);
     color: #0a1c0f;
     font-weight: bold;
     width: auto;
@@ -390,7 +392,7 @@ button:disabled {
     margin-top: 1rem;
 }
 .accept-modal-content button:hover {
-    background: var(--primary-dark);
+    background: #1ea952;
     color: white;
 }
 
@@ -453,7 +455,7 @@ button:disabled {
 }
 
 .custom-footer a:hover {
-    color: var(--primary);
+    color: var(--primary-wa);
     text-decoration: underline;
 }
 
@@ -480,7 +482,7 @@ button:disabled {
     height: 1rem;
     border: 2px solid rgba(255,255,255,0.3);
     border-radius: 50%;
-    border-top-color: var(--primary);
+    border-top-color: var(--primary-wa);
     animation: spin 0.6s linear infinite;
 }
 
@@ -490,10 +492,10 @@ button:disabled {
     body { padding: 0.6rem; }
     .card { padding: 1rem; }
     .phone-card { flex-direction: column; align-items: flex-start; gap: 0.6rem; }
-    .wa-btn { align-self: flex-end; }
+    .chat-buttons { align-self: flex-end; }
     .logo-text { font-size: 1.4rem; }
     .banner-title h1 { font-size: 1.8rem; }
     .css-logo { padding: 0.4rem 1.2rem; }
     .logo-icon { width: 38px; height: 38px; }
-    .logo-icon::before { font-size: 1.4rem; }
+    .logo-icon::before { font-size: 1.6rem; }
 }
