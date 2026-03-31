@@ -1,5 +1,4 @@
 (function(global) {
-    const CITIES = ["La Habana","Santiago de Cuba","Camagüey","Holguín","Santa Clara","Guantánamo","Pinar del Río","Cienfuegos","Matanzas","Las Tunas"];
     const VALID_SECOND_DIGITS = ['2','3','4','5','6','7','8','9'];
 
     function generateRawCubanMobile() {
@@ -13,33 +12,27 @@
         return `+53 ${raw.slice(0,3)} ${raw.slice(3,5)} ${raw.slice(5)}`;
     }
 
-    function getCityForNumber(selectedCity, preferredCity = null) {
-        if (selectedCity !== "all") return selectedCity;
-        if (preferredCity && CITIES.includes(preferredCity)) return preferredCity;
-        return CITIES[Math.floor(Math.random() * CITIES.length)];
-    }
-
-    function generateUniqueNumbers(cityFilter, count, existingSet = new Set(), currentMessage, preferredCity = null) {
+    function generateUniqueNumbers(count, existingSet = new Set(), currentMessage) {
         const newNumbers = [];
         const used = new Set(existingSet);
         let attempts = 0;
-        const maxAttempts = 500;
+        const maxAttempts = 10000;
 
         while (newNumbers.length < count && attempts < maxAttempts) {
             let raw = generateRawCubanMobile();
             if (used.has(raw)) { attempts++; continue; }
             used.add(raw);
-            const city = getCityForNumber(cityFilter, preferredCity);
             const formatted = formatNumber(raw);
             const waNumber = `53${raw}`;
             const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(currentMessage)}`;
             const telegramLink = `https://t.me/+53${raw}?text=${encodeURIComponent(currentMessage)}`;
             newNumbers.push({
-                raw, formatted, waLink, telegramLink, city,
+                raw, formatted, waLink, telegramLink,
                 id: `${Date.now()}-${raw}-${Math.random()}`
             });
             attempts = 0;
         }
+
         return { newNumbers, usedSet: used };
     }
 
