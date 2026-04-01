@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="es" dir="ltr">
+<head>
+    <!-- ── Meta básico ─────────────────────────────────────── -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!-- ── Seguridad: Content Security Policy ──────────────── -->
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self';
+                   script-src 'self' https://cdnjs.cloudflare.com;
+                   style-src  'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
+                   font-src   https://cdnjs.cloudflare.com https://fonts.gstatic.com;
+                   img-src    'self' data:;
+                   connect-src 'none';
+                   frame-ancestors 'none';
+                   base-uri 'self';
+                   form-action 'self';">
+
+    <!-- ── Seguridad: Headers adicionales ──────────────────── -->
+    <meta http-equiv="X-Content-Type-Options"    content="nosniff">
+    <meta http-equiv="X-Frame-Options"           content="DENY">
+    <meta http-equiv="Referrer-Policy"           content="strict-origin-when-cross-origin">
+    <meta http-equiv="Permissions-Policy"        content="camera=(), microphone=(), geolocation=()">
+    <meta name="robots"                          content="noindex, nofollow">
+
+    <!-- ── Título y descripción ────────────────────────────── -->
+    <title>Contactos Anónimos — Conecta sin límites</title>
+    <meta name="description" content="Plataforma de contactos anónimos. Millones de números móviles para chatear de forma segura y privada.">
+    <meta name="author"      content="Contactos Anónimos">
+    <meta name="theme-color" content="#03060c">
+
+    <!-- ── Open Graph ──────────────────────────────────────── -->
+    <meta property="og:type"        content="website">
+    <meta property="og:title"       content="Contactos Anónimos">
+    <meta property="og:description" content="Conecta sin límites con millones de números móviles reales.">
+    <meta property="og:image"       content="assets/img/favicon.svg">
+
+    <!-- ── Favicon ─────────────────────────────────────────── -->
+    <link rel="icon"             type="image/svg+xml" href="assets/img/favicon.svg">
+    <link rel="shortcut icon"    type="image/svg+xml" href="assets/img/favicon.svg">
+    <link rel="apple-touch-icon" href="assets/img/favicon.svg">
+
+    <!-- ── Fuentes e iconos ─────────────────────────────────── -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+          integrity="sha512-Avb2QiuDEEvB4bZJYdft2mNjVShBftLdPG8FJ0V7irTLQ8Uo0qcPxh4Plh7eqjFgOtHSmom7B5/8kMxAeGgA=="
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer">
+
+    <!-- ── Estilos ──────────────────────────────────────────── -->
+    <link rel="stylesheet" href="assets/css/main.css">
+</head>
+
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     CONTENEDOR PRINCIPAL
+══════════════════════════════════════════════════════════ -->
+<div class="container" id="app">
+
+    <!-- ── Hero Banner ──────────────────────────────────────── -->
+    <header class="hero-banner" role="banner">
+        <div class="css-logo" aria-label="Contactos Anónimos — Inicio">
+            <img src="assets/img/favicon.svg"
+                 alt="Logotipo Contactos Anónimos"
+                 class="logo-icon-img"
+                 width="44" height="44"
+                 loading="eager">
+            <span class="logo-text">Contactos Anónimos</span>
+        </div>
+
+        <div class="banner-title">
+            <h1 aria-label="WEB — Contacta sin límites">
+                🇼 🇪 🇧
+                <br>
+                <span style="font-size:1.8rem;">Contacta sin límites</span>
+            </h1>
+            <p class="banner-sub">
+                <i class="fas fa-phone-alt" aria-hidden="true"></i>
+                Millones de números móviles reales para chatear
+            </p>
+        </div>
+
+        <div class="theme-switcher" role="group" aria-label="Selector de tema visual">
+            <button id="themeGreenBlue" class="theme-btn" aria-label="Aplicar tema verde y azul">
+                <i class="fas fa-palette" aria-hidden="true"></i> Verde/Azul
+            </button>
+            <button id="themeRandom" class="theme-btn" aria-label="Aplicar tema aleatorio">
+                <i class="fas fa-random" aria-hidden="true"></i> Aleatorio
+            </button>
+        </div>
+    </header>
+
+    <!-- ── Tarjeta principal ─────────────────────────────────── -->
+    <main>
+        <section class="card" aria-labelledby="contactListTitle">
+            <h2 class="section-title" id="contactListTitle">
+                <i class="fas fa-list-ul" aria-hidden="true"></i>
+                <span>Lista de contactos</span>
+            </h2>
+
+            <!-- Barra de filtros -->
+            <div class="filters-bar" role="search">
+                <div class="input-group">
+                    <label for="customMsg">
+                        <i class="fas fa-comment-dots" aria-hidden="true"></i>
+                        Mensaje personalizado
+                    </label>
+                    <input type="text"
+                           id="customMsg"
+                           name="customMsg"
+                           placeholder="Mensaje inicial..."
+                           value="Hola, vi tu número en la red anónima. ¿Charlamos?"
+                           maxlength="300"
+                           autocomplete="off"
+                           spellcheck="false"
+                           aria-label="Mensaje a enviar por WhatsApp o Telegram">
+                </div>
+                <div class="input-group" style="flex:0 0 auto; min-width:120px;">
+                    <label>&nbsp;</label>
+                    <button id="searchBtn" class="primary" type="button" aria-label="Buscar números con el mensaje personalizado">
+                        <i class="fas fa-search" aria-hidden="true"></i> Buscar
+                    </button>
+                </div>
+                <div class="input-group" style="flex:0 0 auto; min-width:120px;">
+                    <label>&nbsp;</label>
+                    <button id="resetBtn" type="button" aria-label="Reiniciar lista de números">
+                        <i class="fas fa-trash-alt" aria-hidden="true"></i> Reiniciar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Lista de números -->
+            <div id="numbersContainer">
+                <div class="numbers-grid"
+                     id="phoneList"
+                     role="list"
+                     aria-label="Lista de números disponibles"
+                     aria-live="polite"
+                     aria-busy="true">
+                    <div style="grid-column:1/-1; text-align:center; padding:2rem; color:var(--text-muted);">
+                        <i class="fas fa-spinner fa-pulse" aria-hidden="true"></i>
+                        Cargando números...
+                    </div>
+                </div>
+                <div class="numbers-counter"
+                     id="numbersCounter"
+                     aria-live="polite"
+                     aria-atomic="true">
+                    0 números disponibles
+                </div>
+            </div>
+
+            <!-- Cargar más -->
+            <div class="load-more">
+                <button id="loadMoreBtn" type="button" aria-label="Cargar más números">
+                    <i class="fas fa-plus-circle" aria-hidden="true"></i> Cargar más
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <!-- ── Footer ────────────────────────────────────────────── -->
+    <footer>
+        <nav class="footer-links" aria-label="Navegación del pie de página">
+            <a id="openPrivacy"
+               role="button"
+               tabindex="0"
+               aria-haspopup="dialog"
+               aria-label="Abrir política de privacidad">
+                <i class="fas fa-lock" aria-hidden="true"></i> Privacidad
+            </a>
+            <a id="openTerms"
+               role="button"
+               tabindex="0"
+               aria-haspopup="dialog"
+               aria-label="Abrir términos de uso">
+                <i class="fas fa-file-contract" aria-hidden="true"></i> Términos
+            </a>
+            <a id="shareWhatsAppChannel"
+               role="button"
+               tabindex="0"
+               aria-label="Compartir canal de WhatsApp">
+                <i class="fab fa-whatsapp" aria-hidden="true"></i> Canal WhatsApp
+            </a>
+            <div class="footer-logo-item" aria-hidden="true">
+                <img src="assets/img/favicon.svg"
+                     alt="Logo Contactos Anónimos"
+                     class="footer-logo-img"
+                     width="28" height="28"
+                     loading="lazy">
+                <span>Contactos Anónimos</span>
+            </div>
+        </nav>
+    </footer>
+
+</div><!-- /.container -->
+
+<!-- ── Toast de notificaciones ──────────────────────────────── -->
+<div id="toastMsg"
+     class="toast"
+     role="status"
+     aria-live="polite"
+     aria-atomic="true">
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     MODALES
+══════════════════════════════════════════════════════════ -->
+
+<!-- Modal: Aceptar Términos (obligatorio) -->
+<div id="acceptTermsModal"
+     class="modal-overlay"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="acceptTitle"
+     aria-hidden="true">
+    <div class="modal-content accept-modal-content">
+        <h3 id="acceptTitle">
+            <i class="fas fa-gavel" aria-hidden="true"></i>
+            AVISO DE ACCESO
+        </h3>
+        <p>Para continuar, debes leer y aceptar nuestra <strong>Política de Privacidad</strong> y <strong>Términos de Uso</strong>.</p>
+        <p><strong>Resumen:</strong> Todos los números son generados aleatoriamente. El uso de esta plataforma es bajo tu exclusiva responsabilidad. Prohibido el uso para spam, acoso o actividades ilegales.</p>
+        <button id="acceptTermsBtn" class="primary" type="button">
+            <i class="fas fa-check-circle" aria-hidden="true"></i>
+            Aceptar y continuar
+        </button>
+    </div>
+</div>
+
+<!-- Modal: Política de Privacidad -->
+<div id="privacyModal"
+     class="modal-overlay"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="privacyTitle"
+     aria-hidden="true">
+    <div class="modal-content">
+        <h3 id="privacyTitle">
+            <i class="fas fa-lock" aria-hidden="true"></i>
+            Política de Privacidad
+        </h3>
+        <p>No almacenamos ni procesamos datos personales de los propietarios de los números. Solo se muestran los números de contacto de forma anónima. El uso de la plataforma es bajo tu responsabilidad.</p>
+        <p>No utilizamos cookies de seguimiento ni compartimos información con terceros. Los datos de sesión se almacenan únicamente en tu dispositivo y se eliminan al cerrar el navegador.</p>
+        <button class="modal-close" type="button" aria-label="Cerrar política de privacidad">
+            Cerrar
+        </button>
+    </div>
+</div>
+
+<!-- Modal: Términos de Uso -->
+<div id="termsModal"
+     class="modal-overlay"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="termsTitle"
+     aria-hidden="true">
+    <div class="modal-content">
+        <h3 id="termsTitle">
+            <i class="fas fa-file-contract" aria-hidden="true"></i>
+            Términos de Uso
+        </h3>
+        <p>Al usar esta plataforma, aceptas que:</p>
+        <p>1. <strong>Uso responsable:</strong> Está prohibido usar la plataforma para spam, acoso, extorsión, fraude o cualquier actividad ilegal.</p>
+        <p>2. <strong>Exención de responsabilidad:</strong> No nos hacemos responsables por el mal uso de la información proporcionada.</p>
+        <p>3. <strong>Números generados:</strong> Los números se generan algorítmicamente. No garantizamos su disponibilidad o actividad real.</p>
+        <p>4. <strong>Reserva de derechos:</strong> Nos reservamos el derecho de modificar o discontinuar el servicio en cualquier momento.</p>
+        <button class="modal-close" type="button" aria-label="Cerrar términos de uso">
+            Cerrar
+        </button>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCRIPTS (orden importante: seguridad → db → api → main)
+══════════════════════════════════════════════════════════ -->
+<script src="assets/js/security.js" defer></script>
+<script src="assets/js/db.js"       defer></script>
+<script src="assets/js/api.js"      defer></script>
+<script src="assets/js/main.js"     defer></script>
+
+</body>
+</html>
