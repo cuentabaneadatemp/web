@@ -39,12 +39,14 @@ El proyecto ha sido reestructurado para mejorar su mantenibilidad y escalabilida
 
 ```text
 /
+├── index.html                  # Archivo principal en la raíz
 ├── src/
 │   ├── assets/
 │   │   ├── css/
 │   │   │   └── main.css        # Estilos principales con variables y animaciones
 │   │   ├── img/
-│   │   │   └── favicon.svg     # Recursos gráficos
+│   │   │   ├── favicon.svg     # Favicon optimizado (escudo azul-verde)
+│   │   │   └── banner.png      # Banner profesional para GitHub
 │   │   └── js/
 │   │       ├── security.js     # Capa de protección del cliente
 │   │       ├── geo.js          # Geolocalización y geobloqueo (NUEVO)
