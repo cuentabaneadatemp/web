@@ -42,6 +42,9 @@ Nos comprometemos a:
 
 | Medida                              | Descripción                                                                 |
 |-------------------------------------|-----------------------------------------------------------------------------|
+| **Geobloqueo Estricto**             | Restricción de acceso a usuarios fuera de Cuba, con monitoreo continuo.     |
+| **Detección de VPN/Proxy**          | Identificación y bloqueo automático de conexiones anónimas (VPN, proxy, Tor).|
+| **Permisos Obligatorios**           | Solicitud y verificación de permisos de Geolocalización, Almacenamiento y Notificaciones. |
 | Anti-Framing (Clickjacking)         | Detección y bloqueo de carga dentro de `<iframe>` de terceros.              |
 | Content Security Policy (CSP)       | Restricción de fuentes de scripts, estilos e imágenes mediante meta tag.    |
 | X-Frame-Options                     | Cabecera `DENY` para prevenir embedding no autorizado.                      |

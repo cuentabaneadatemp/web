@@ -29,6 +29,9 @@ Esta versión 2.0 ha sido completamente reescrita para ofrecer una experiencia d
 - 🛡️ **Seguridad Mejorada:** Múltiples capas de protección contra inspección de código, framing y copias no autorizadas.
 - 💾 **Base de Datos Local:** Sistema de caché y almacenamiento de sesión integrado (`db.js`) para mantener el historial sin comprometer la privacidad.
 - ⚡ **Alto Rendimiento:** Arquitectura sin dependencias externas pesadas, carga rápida y animaciones fluidas.
+- 📍 **Geobloqueo Inteligente:** Restricción de acceso a usuarios fuera de Cuba, con monitoreo continuo de ubicación.
+- 🚫 **Detección de VPN/Proxy:** Bloqueo automático de acceso si se detecta el uso de VPN, proxy o Tor.
+- ✅ **Permisos Obligatorios:** Solicita y verifica permisos esenciales del navegador (Geolocalización, Almacenamiento, Notificaciones) para garantizar el funcionamiento y la seguridad.
 
 ## 🏗️ Arquitectura
 
@@ -44,6 +47,8 @@ El proyecto ha sido reestructurado para mejorar su mantenibilidad y escalabilida
 │   │   │   └── favicon.svg     # Recursos gráficos
 │   │   └── js/
 │   │       ├── security.js     # Capa de protección del cliente
+│   │       ├── geo.js          # Geolocalización y geobloqueo (NUEVO)
+│   │       ├── permissions.js  # Solicitud de permisos (NUEVO)
 │   │       ├── db.js           # Gestión de estado, caché y estadísticas
 │   │       ├── api.js          # Lógica de generación y formateo de números
 │   │       └── main.js         # Controladores de UI y eventos
@@ -63,6 +68,9 @@ El proyecto ha sido reestructurado para mejorar su mantenibilidad y escalabilida
 
 La plataforma implementa diversas medidas de seguridad en el frontend para disuadir el mal uso y proteger la integridad de la aplicación:
 
+- **Geobloqueo Estricto:** Acceso restringido exclusivamente a usuarios ubicados en Cuba, con verificación continua de la posición geográfica.
+- **Detección de VPN/Proxy:** Identificación y bloqueo automático de conexiones que utilizan servicios de anonimato para evadir restricciones geográficas.
+- **Permisos Obligatorios:** Requiere y verifica permisos de Geolocalización, Almacenamiento y Notificaciones del navegador para un funcionamiento seguro y transparente.
 - **Anti-Clickjacking:** Bloqueo estricto de carga en iframes (`X-Frame-Options: DENY` y scripts de validación).
 - **Protección de Código:** Deshabilitación de menú contextual, atajos de DevTools (F12, Ctrl+Shift+I) y selección de texto.
 - **Sanitización de Entradas:** Limpieza rigurosa de mensajes personalizados para prevenir ataques XSS.
@@ -98,7 +106,7 @@ El proyecto es completamente estático y no requiere de un servidor backend comp
 
 3. **Uso:**
    - Navega a `http://localhost:8080` (o el puerto que asigne tu servidor).
-   - Acepta los términos de uso en el modal inicial.
+   - **Acepta los permisos obligatorios** y los términos de uso en los modales iniciales.
    - Utiliza el botón "Buscar" o "Cargar más" para generar nuevos contactos.
 
 ## 🛠️ Contribución

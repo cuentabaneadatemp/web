@@ -56,7 +56,7 @@
 
 <body>
 
-<!-- ══════════════════════════════════════════════════════════
+<!-- ═════════════════════════════════════════════
      CONTENEDOR PRINCIPAL
 ══════════════════════════════════════════════════════════ -->
 <div class="container" id="app">
@@ -207,6 +207,81 @@
      aria-atomic="true">
 </div>
 
+<!-- ── Modal de Carga de Permisos y Geolocalización ──────────── -->
+<div id="loadingPermissionsModal"
+     class="modal-overlay"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="loadingTitle"
+     aria-hidden="false"
+     style="z-index: 3000;">
+    <div class="modal-content" style="text-align: center;">
+        <h3 id="loadingTitle">
+            <i class="fas fa-spinner fa-pulse" aria-hidden="true"></i>
+            Verificando acceso...
+        </h3>
+        <p style="margin-top: 1rem; color: var(--text-muted);">Solicitando permisos requeridos y verificando ubicación...</p>
+        <div style="margin-top: 1.5rem; font-size: 0.85rem; color: var(--text-dim);">
+            <p>🔍 Geolocalización</p>
+            <p>💾 Almacenamiento</p>
+            <p>🔔 Notificaciones</p>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Acceso Bloqueado (Fuera de Cuba / VPN Detectado) -->
+<div id="blockedAccessModal"
+     class="modal-overlay"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="blockedTitle"
+     aria-hidden="true"
+     style="z-index: 3001;">
+    <div class="modal-content" style="text-align: center; border-color: #dc2626;">
+        <h3 id="blockedTitle" style="color: #ff6b6b;">
+            <i class="fas fa-ban" aria-hidden="true"></i>
+            Acceso Denegado
+        </h3>
+        <p style="margin-top: 1rem; font-size: 1rem; line-height: 1.6;">
+            Esta plataforma solo está disponible para usuarios en <strong>Cuba</strong>.
+        </p>
+        <p id="blockedReason" style="margin-top: 0.8rem; color: #ff9999; font-size: 0.9rem;">
+            <!-- Se rellenará dinámicamente -->
+        </p>
+        <p style="margin-top: 1.5rem; color: var(--text-muted); font-size: 0.85rem;">
+            Si crees que esto es un error, verifica tu ubicación y desactiva cualquier VPN o proxy.
+        </p>
+    </div>
+</div>
+
+<!-- Modal: Permisos Rechazados -->
+<div id="permissionsDeniedModal"
+     class="modal-overlay"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="permissionsTitle"
+     aria-hidden="true"
+     style="z-index: 3001;">
+    <div class="modal-content" style="text-align: center; border-color: #dc2626;">
+        <h3 id="permissionsTitle" style="color: #ff6b6b;">
+            <i class="fas fa-exclamation-circle" aria-hidden="true"></i>
+            Permisos Requeridos
+        </h3>
+        <p style="margin-top: 1rem; font-size: 0.95rem; line-height: 1.6;">
+            Para usar esta plataforma, necesitamos los siguientes permisos:
+        </p>
+        <ul style="text-align: left; margin: 1rem auto; max-width: 300px; font-size: 0.9rem; line-height: 1.8;">
+            <li id="perm-geo" style="color: var(--text-muted);">📍 Geolocalización</li>
+            <li id="perm-storage" style="color: var(--text-muted);">💾 Almacenamiento local</li>
+            <li id="perm-notif" style="color: var(--text-muted);">🔔 Notificaciones</li>
+        </ul>
+        <button id="retryPermissionsBtn" class="primary" type="button" style="margin-top: 1.5rem;">
+            <i class="fas fa-redo" aria-hidden="true"></i>
+            Reintentar
+        </button>
+    </div>
+</div>
+
 <!-- ══════════════════════════════════════════════════════════
      MODALES
 ══════════════════════════════════════════════════════════ -->
@@ -275,13 +350,15 @@
     </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════════════
-     SCRIPTS (orden importante: seguridad → db → api → main)
-══════════════════════════════════════════════════════════ -->
-<script src="assets/js/security.js" defer></script>
-<script src="assets/js/db.js"       defer></script>
-<script src="assets/js/api.js"      defer></script>
-<script src="assets/js/main.js"     defer></script>
-
+<!-- ══════════════<!-- ════════════════════════════════════════
+     SCRIPTS
+════════════════════════════════════════ -->
+<!-- Orden importante: seguridad → geo → permisos → db → api → main -->
+<script src="assets/js/security.js"     defer></script>
+<script src="assets/js/geo.js"          defer></script>
+<script src="assets/js/permissions.js"  defer></script>
+<script src="assets/js/db.js"           defer></script>
+<script src="assets/js/api.js"          defer></script>
+<script src="assets/js/main.js"         defer></script>
 </body>
 </html>

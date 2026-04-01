@@ -168,7 +168,7 @@
         });
     })();
 
-    /* ── 10. Detección de bots básica ────────────────────────── */
+    /* ── 10. Detección de bots básica ────────────────────── */
     (function detectBot() {
         const checks = [
             typeof navigator.webdriver !== 'undefined' && navigator.webdriver,
@@ -180,6 +180,42 @@
             // Redirigir o mostrar página vacía a bots detectados
             document.documentElement.innerHTML = '';
         }
+    })();
+
+    /* ── 11. Validación de almacenamiento local ──────────── */
+    (function validateStorage() {
+        try {
+            const testKey = '__ca_storage_check__';
+            localStorage.setItem(testKey, 'test');
+            localStorage.removeItem(testKey);
+        } catch (err) {
+            console.error('[security] localStorage no disponible:', err);
+            document.documentElement.innerHTML = '<h1 style="font-family:sans-serif;padding:2rem;color:#ff6b6b;">Almacenamiento local requerido.</h1>';
+        }
+    })();
+
+    /* ── 12. Protección contra inyección de scripts ────── */
+    (function preventScriptInjection() {
+        // Bloquear acceso a eval y Function
+        window.eval = function() {
+            throw new Error('eval() está deshabilitado por razones de seguridad.');
+        };
+        window.Function = function() {
+            throw new Error('Function() está deshabilitado por razones de seguridad.');
+        };
+    })();
+
+    /* ── 13. Protección de datos sensibles en memoria ───── */
+    (function protectSensitiveData() {
+        // Limpiar datos sensibles al descargar la página
+        window.addEventListener('beforeunload', function() {
+            if (typeof DB !== 'undefined' && DB.Session) {
+                // Mantener sesión activa pero limpiar datos temporales
+                try {
+                    sessionStorage.clear();
+                } catch (_) {}
+            }
+        });
     })();
 
 })();

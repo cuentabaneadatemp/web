@@ -394,7 +394,111 @@
         }
     }
 
-    /* ── Inicialización ──────────────────────────────────────── */
+     /* ── Verificación de Acceso (Geobloqueo + Permisos) ──────────── */
+
+    /**
+     * Verifica permisos y ubicación antes de permitir acceso.
+     * @returns {Promise<boolean>} true si se permite acceso
+     */
+    async function checkAccessRequirements() {
+        const loadingModal = $('loadingPermissionsModal');
+        const blockedModal = $('blockedAccessModal');
+        const permDeniedModal = $('permissionsDeniedModal');
+
+        try {
+            // Mostrar modal de carga
+            if (loadingModal) {
+                loadingModal.classList.add('active');
+                loadingModal.setAttribute('aria-hidden', 'false');
+            }
+
+            // 1. Solicitar permisos obligatorios
+            if (typeof PERMISSIONS !== 'undefined') {
+                const permsResult = await PERMISSIONS.requestMandatoryPermissions();
+
+                if (!permsResult.allApproved) {
+                    // Actualizar UI de permisos rechazados
+                    if ($('perm-geo')) {
+                        $('perm-geo').style.color = permsResult.geolocation ? '#25D366' : '#ff6b6b';
+                    }
+                    if ($('perm-storage')) {
+                        $('perm-storage').style.color = permsResult.storage ? '#25D366' : '#ff6b6b';
+                    }
+                    if ($('perm-notif')) {
+                        $('perm-notif').style.color = permsResult.notifications ? '#25D366' : '#ff6b6b';
+                    }
+
+                    // Mostrar modal de permisos rechazados
+                    if (loadingModal) loadingModal.classList.remove('active');
+                    if (permDeniedModal) {
+                        permDeniedModal.classList.add('active');
+                        permDeniedModal.setAttribute('aria-hidden', 'false');
+                    }
+
+                    return false;
+                }
+            }
+
+            // 2. Verificar ubicación y detectar VPN
+            if (typeof GEO !== 'undefined') {
+                const geoResult = await GEO.init();
+
+                if (!geoResult.allowed) {
+                    // Bloquear acceso
+                    const reason = geoResult.vpnDetected
+                        ? '\u274c VPN o Proxy detectado. Por favor desactívalo.'
+                        : `\u274c Tu ubicación (${geoResult.country || 'Desconocida'}) no está permitida.`;
+
+                    if ($('blockedReason')) {
+                        $('blockedReason').textContent = reason;
+                    }
+
+                    if (loadingModal) loadingModal.classList.remove('active');
+                    if (blockedModal) {
+                        blockedModal.classList.add('active');
+                        blockedModal.setAttribute('aria-hidden', 'false');
+                    }
+
+                    console.warn('[main] Acceso bloqueado:', reason);
+                    return false;
+                }
+
+                // Iniciar monitoreo continuo de ubicación
+                GEO.startMonitoring(
+                    (location) => {
+                        console.log('[main] Ubicación actualizada:', location);
+                    },
+                    (isBlocked) => {
+                        if (isBlocked) {
+                            console.error('[main] Usuario salió de Cuba - bloqueando acceso');
+                            if (blockedModal) {
+                                $('blockedReason').textContent = '\u274c Has salido de la región permitida.';
+                                blockedModal.classList.add('active');
+                                blockedModal.setAttribute('aria-hidden', 'false');
+                            }
+                            // Ocultar contenido principal
+                            if (DOM.phoneList) DOM.phoneList.innerHTML = '';
+                        }
+                    }
+                );
+            }
+
+            // Ocultar modal de carga
+            if (loadingModal) {
+                loadingModal.classList.remove('active');
+                loadingModal.setAttribute('aria-hidden', 'true');
+            }
+
+            return true;
+
+        } catch (err) {
+            console.error('[main] Error en verificación de acceso:', err);
+            if (loadingModal) loadingModal.classList.remove('active');
+            return false;
+        }
+    }
+
+    /* ── Inicialización ──────────────────────────────── */
 
     function init() {
         // Inicializar DB
@@ -404,7 +508,23 @@
 
         bindEvents();
         applyTheme('greenblue');
-        initModals();
+
+        // Verificar permisos y ubicación antes de mostrar la app
+        checkAccessRequirements().then((allowed) => {
+            if (allowed) {
+                initModals();
+            }
+        });
+    }
+
+    // Botón de reintentar permisos
+    const retryBtn = $('retryPermissionsBtn');
+    if (retryBtn) {
+        retryBtn.addEventListener('click', () => {
+            const permDeniedModal = $('permissionsDeniedModal');
+            if (permDeniedModal) permDeniedModal.classList.remove('active');
+            location.reload();
+        });
     }
 
     // Arrancar cuando el DOM esté listo
@@ -412,6 +532,7 @@
         document.addEventListener('DOMContentLoaded', init);
     } else {
         init();
+    };
     }
 
 })();
