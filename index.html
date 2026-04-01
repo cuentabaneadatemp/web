@@ -1,48 +1,158 @@
 <!DOCTYPE html>
 <html lang="es" dir="ltr">
 <head>
-    <!-- ── Meta básico ─────────────────────────────────────── -->
+    <!-- ═══════════════════════════════════════════════════════════
+         META BÁSICO Y CHARSET
+    ════════════════════════════════════════════════════════════ -->
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="content-language" content="es">
 
-    <!-- ── Seguridad: Content Security Policy ──────────────── -->
-    <!-- CORRECCIÓN: connect-src ahora permite las APIs de geolocalización necesarias -->
+    <!-- ═══════════════════════════════════════════════════════════
+         SEO Y METADATOS
+    ════════════════════════════════════════════════════════════ -->
+    <title>Contactos Anónimos — Conecta sin límites | Chat Anónimo</title>
+    <meta name="description" content="Plataforma de contactos anónimos. Genera números móviles cubanos reales para chatear de forma segura y privada en WhatsApp y Telegram.">
+    <meta name="keywords" content="contactos anónimos, números móviles, WhatsApp, Telegram, chat privado, Cuba, contactos seguros">
+    <meta name="author" content="Contactos Anónimos">
+    <meta name="creator" content="Contactos Anónimos">
+    <meta name="publisher" content="Contactos Anónimos">
+    <meta name="theme-color" content="#03060c">
+    <meta name="color-scheme" content="dark">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="revisit-after" content="7 days">
+    <meta name="rating" content="general">
+    <meta name="language" content="Spanish">
+    <meta name="distribution" content="global">
+
+    <!-- ═══════════════════════════════════════════════════════════
+         OPEN GRAPH (Facebook, LinkedIn, etc.)
+    ════════════════════════════════════════════════════════════ -->
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="es_ES">
+    <meta property="og:title" content="Contactos Anónimos — Conecta sin límites">
+    <meta property="og:description" content="Plataforma de contactos anónimos. Millones de números móviles para chatear de forma segura y privada.">
+    <meta property="og:url" content="https://cuentabaneadatemp.github.io/web/">
+    <meta property="og:site_name" content="Contactos Anónimos">
+    <meta property="og:image" content="https://cuentabaneadatemp.github.io/web/src/assets/img/favicon.svg">
+    <meta property="og:image:type" content="image/svg+xml">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <!-- ═══════════════════════════════════════════════════════════
+         TWITTER CARDS
+    ════════════════════════════════════════════════════════════ -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Contactos Anónimos — Conecta sin límites">
+    <meta name="twitter:description" content="Plataforma de contactos anónimos. Millones de números móviles para chatear de forma segura y privada.">
+    <meta name="twitter:image" content="https://cuentabaneadatemp.github.io/web/src/assets/img/favicon.svg">
+    <meta name="twitter:creator" content="@contactosanonimos">
+    <meta name="twitter:site" content="@contactosanonimos">
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SEGURIDAD: Content Security Policy
+    ════════════════════════════════════════════════════════════ -->
     <meta http-equiv="Content-Security-Policy"
           content="default-src 'self';
                    script-src 'self' https://cdnjs.cloudflare.com;
                    style-src  'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
                    font-src   https://cdnjs.cloudflare.com https://fonts.gstatic.com;
-                   img-src    'self' data:;
+                   img-src    'self' data: https:;
                    connect-src 'self' https://ipwho.is https://ipapi.co;
                    frame-ancestors 'none';
                    base-uri 'self';
                    form-action 'self';">
 
-    <!-- ── Seguridad: Headers adicionales ──────────────────── -->
-    <meta http-equiv="X-Content-Type-Options"    content="nosniff">
-    <meta http-equiv="X-Frame-Options"           content="DENY">
-    <meta http-equiv="Referrer-Policy"           content="strict-origin-when-cross-origin">
-    <!-- CORRECCIÓN: geolocation=(self) permite el uso de la API en el origen propio -->
-    <meta http-equiv="Permissions-Policy"        content="camera=(), microphone=(), geolocation=(self)">
-    <meta name="robots"                          content="noindex, nofollow">
+    <!-- ═══════════════════════════════════════════════════════════
+         SEGURIDAD: Headers adicionales
+    ════════════════════════════════════════════════════════════ -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(self)">
 
-    <!-- ── Título y descripción ────────────────────────────── -->
-    <title>Contactos Anónimos — Conecta sin límites</title>
-    <meta name="description" content="Plataforma de contactos anónimos. Millones de números móviles para chatear de forma segura y privada.">
-    <meta name="author"      content="Contactos Anónimos">
-    <meta name="theme-color" content="#03060c">
+    <!-- ═══════════════════════════════════════════════════════════
+         FAVICON E ICONOS
+    ════════════════════════════════════════════════════════════ -->
+    <link rel="icon" type="image/svg+xml" href="src/assets/img/favicon.svg">
+    <link rel="shortcut icon" type="image/svg+xml" href="src/assets/img/favicon.svg">
+    <link rel="apple-touch-icon" href="src/assets/img/pwa_icons/apple-touch-icon.png">
+    <link rel="mask-icon" href="src/assets/img/favicon.svg" color="#25D366">
 
-    <!-- ── Open Graph ──────────────────────────────────────── -->
-    <meta property="og:type"        content="website">
-    <meta property="og:title"       content="Contactos Anónimos">
-    <meta property="og:description" content="Conecta sin límites con millones de números móviles reales.">
-    <meta property="og:image"       content="src/assets/img/favicon.svg">
+    <!-- ═══════════════════════════════════════════════════════════
+         PWA: Web App Manifest y Service Worker
+    ════════════════════════════════════════════════════════════ -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Contactos Anónimos">
 
-    <!-- ── Favicon ─────────────────────────────────────────── -->
-    <link rel="icon"             type="image/svg+xml" href="src/assets/img/favicon.svg">
-    <link rel="shortcut icon"    type="image/svg+xml" href="src/assets/img/favicon.svg">
-    <link rel="apple-touch-icon" href="src/assets/img/favicon.svg">
+    <!-- ═══════════════════════════════════════════════════════════
+         FUENTES E ICONOS
+    ════════════════════════════════════════════════════════════ -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+          integrity="sha512-Avb2QiuDEEvB4bZJYdft2mNjVShBftLdPG8FJ0V7irTLQ8Uo0qcPxh4Plh7eqjFgOtHSmom7B5/8kMxAeGgA=="
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer">
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ESTILOS
+    ════════════════════════════════════════════════════════════ -->
+    <link rel="stylesheet" href="src/assets/css/main.css">
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SCHEMA.ORG (JSON-LD)
+    ════════════════════════════════════════════════════════════ -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Contactos Anónimos",
+      "description": "Plataforma de contactos anónimos para chatear de forma segura y privada.",
+      "url": "https://cuentabaneadatemp.github.io/web/",
+      "applicationCategory": "CommunicationApplication",
+      "operatingSystem": "Web",
+      "browserRequirements": "Requires JavaScript enabled",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "creator": {
+        "@type": "Organization",
+        "name": "Contactos Anónimos",
+        "url": "https://cuentabaneadatemp.github.io/web/"
+      },
+      "image": "https://cuentabaneadatemp.github.io/web/src/assets/img/favicon.svg",
+      "inLanguage": "es",
+      "isAccessibleForFree": true,
+      "availableLanguage": "es"
+    }
+    </script>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SCHEMA.ORG: Organización
+    ════════════════════════════════════════════════════════════ -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Contactos Anónimos",
+      "url": "https://cuentabaneadatemp.github.io/web/",
+      "description": "Plataforma de contactos anónimos para chatear de forma segura y privada.",
+      "logo": "https://cuentabaneadatemp.github.io/web/src/assets/img/favicon.svg",
+      "sameAs": [
+        "https://github.com/cuentabaneadatemp/web"
+      ]
+    }
+    </script>
 
     <!-- ── Fuentes e iconos ─────────────────────────────────── -->
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
@@ -402,5 +512,8 @@
 <script src="src/assets/js/db.js"           defer></script>
 <script src="src/assets/js/api.js"          defer></script>
 <script src="src/assets/js/main.js"         defer></script>
+
+<!-- Service Worker Registration (PWA) -->
+<script src="src/assets/js/sw-register.js" defer></script>
 </body>
 </html>
