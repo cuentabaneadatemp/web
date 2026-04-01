@@ -3,14 +3,21 @@
  * Contactos Anónimos v2.0
  *
  * Implementa:
- *   1. Geolocalización por IP (API externa)
- *   2. Detección de VPN/Proxy
+ *   1. Geolocalización por IP (APIs externas: ipwho.is, ipapi.co)
+ *   2. Detección de VPN/Proxy por API y por discrepancia GPS vs IP
  *   3. Geobloqueo para Cuba (restricción de acceso)
  *   4. Monitoreo continuo de ubicación con Geolocation API del navegador
- *   5. Caché local de ubicación para optimizar requests
+ *   5. Caché local de ubicación para optimizar requests (TTL: 5 min)
  *
- * Nota: Este módulo requiere conexión a internet para consultar APIs de geolocalización.
- * Las APIs utilizadas son gratuitas con límites de requests.
+ * Dependencias externas:
+ *   - https://ipwho.is/  (API primaria de geolocalización por IP)
+ *   - https://ipapi.co/json/ (API de respaldo)
+ *
+ * IMPORTANTE: La CSP del documento debe incluir:
+ *   connect-src 'self' https://ipwho.is https://ipapi.co;
+ *
+ * @module GEO
+ * @version 2.0
  */
 
 (function (global) {
@@ -18,67 +25,82 @@
 
     /* ── Constantes ──────────────────────────────────────────── */
 
-    /** Coordenadas aproximadas de Cuba (centro) */
+    /**
+     * Límites geográficos de Cuba.
+     * Cuba se extiende aproximadamente:
+     *   - Latitud:  19.8°N (extremo sur, Cabo Cruz) a 23.2°N (extremo norte, Punta Hicacos)
+     *   - Longitud: 84.9°O (extremo oeste, Cabo San Antonio) a 74.1°O (extremo este, Punta de Maisí)
+     *
+     * CORRECCIÓN v2.0: El rango de latitud fue corregido de (19.8–20.4) a (19.8–23.3)
+     * para incluir todo el territorio cubano. La Habana (~23.1°N) estaba excluida
+     * con los límites anteriores.
+     */
     const CUBA_BOUNDS = {
-        lat: { min: 19.8, max: 20.4 },
+        lat: { min: 19.8, max: 23.3 },
         lon: { min: -84.9, max: -74.1 },
     };
 
-    /** Margen de tolerancia en grados para geolocalización por GPS */
+    /** Margen de tolerancia en grados para geolocalización por GPS (≈ 167 km) */
     const GPS_TOLERANCE = 1.5;
 
-    /** APIs de geolocalización por IP (gratuitas con límites) */
+    /**
+     * APIs de geolocalización por IP (gratuitas con límites de uso).
+     * Se intentan en orden; si la primera falla, se usa la segunda.
+     */
     const GEO_APIS = [
         {
-            name:     'ipwhois',
-            url:      'https://ipwho.is/',
-            parser:   (data) => ({
-                country:  data.country,
+            name:   'ipwhois',
+            url:    'https://ipwho.is/',
+            parser: (data) => ({
+                country:      data.country,
                 country_code: data.country_code,
-                latitude: data.latitude,
-                longitude: data.longitude,
-                is_vpn:   data.is_vpn || false,
-                is_proxy: data.is_proxy || false,
-                is_tor:   data.is_tor || false,
+                latitude:     data.latitude,
+                longitude:    data.longitude,
+                is_vpn:       data.is_vpn   || false,
+                is_proxy:     data.is_proxy || false,
+                is_tor:       data.is_tor   || false,
             }),
         },
         {
-            name:     'ipapi-free',
-            url:      'https://ipapi.co/json/',
-            parser:   (data) => ({
-                country:  data.country_name,
+            name:   'ipapi-free',
+            url:    'https://ipapi.co/json/',
+            parser: (data) => ({
+                country:      data.country_name,
                 country_code: data.country_code,
-                latitude: data.latitude,
-                longitude: data.longitude,
-                is_vpn:   false,
-                is_proxy: false,
-                is_tor:   false,
+                latitude:     data.latitude,
+                longitude:    data.longitude,
+                is_vpn:       false,
+                is_proxy:     false,
+                is_tor:       false,
             }),
         },
     ];
 
-    /** Duración del caché de ubicación (ms) */
-    const CACHE_TTL = 300000; // 5 minutos
+    /** Duración del caché de ubicación en milisegundos (5 minutos) */
+    const CACHE_TTL = 300_000;
 
-    /* ── Estado ──────────────────────────────────────────────── */
+    /** Distancia máxima en km entre IP y GPS para considerar VPN */
+    const VPN_DISTANCE_THRESHOLD = 100;
+
+    /* ── Estado interno ──────────────────────────────────────── */
     const state = {
-        currentLocation:  null,
-        lastGPSLocation:  null,
-        locationCache:    null,
-        cacheTTL:         null,
-        isMonitoring:     false,
-        watchId:          null,
-        isVpnDetected:    false,
-        isBlocked:        false,
+        currentLocation: null,
+        lastGPSLocation: null,
+        locationCache:   null,
+        cacheTTL:        null,
+        isMonitoring:    false,
+        watchId:         null,
+        isVpnDetected:   false,
+        isBlocked:       false,
     };
 
-    /* ── Utilidades ──────────────────────────────────────────── */
+    /* ── Utilidades privadas ─────────────────────────────────── */
 
     /**
-     * Comprueba si una ubicación está dentro de los límites de Cuba.
-     * @param {number} lat - Latitud
-     * @param {number} lon - Longitud
-     * @returns {boolean}
+     * Comprueba si una coordenada está dentro de los límites de Cuba.
+     * @param {number} lat - Latitud en grados decimales
+     * @param {number} lon - Longitud en grados decimales
+     * @returns {boolean} true si la coordenada está en Cuba
      */
     function _isInCuba(lat, lon) {
         return (
@@ -90,15 +112,16 @@
     }
 
     /**
-     * Distancia aproximada entre dos puntos (Fórmula de Haversine simplificada).
-     * @param {number} lat1
-     * @param {number} lon1
-     * @param {number} lat2
-     * @param {number} lon2
-     * @returns {number} distancia en km
+     * Calcula la distancia aproximada entre dos puntos geográficos
+     * usando la fórmula de Haversine.
+     * @param {number} lat1 - Latitud del punto 1
+     * @param {number} lon1 - Longitud del punto 1
+     * @param {number} lat2 - Latitud del punto 2
+     * @param {number} lon2 - Longitud del punto 2
+     * @returns {number} Distancia en kilómetros
      */
     function _distance(lat1, lon1, lat2, lon2) {
-        const R = 6371; // radio de la Tierra en km
+        const R    = 6371; // Radio de la Tierra en km
         const dLat = (lat2 - lat1) * Math.PI / 180;
         const dLon = (lon2 - lon1) * Math.PI / 180;
         const a =
@@ -110,18 +133,19 @@
     }
 
     /**
-     * Realiza una petición GET a una URL con timeout.
-     * @param {string} url
-     * @param {number} [timeout=5000]
-     * @returns {Promise<object>}
+     * Realiza una petición GET con timeout configurable.
+     * @param {string} url     - URL a consultar
+     * @param {number} timeout - Tiempo máximo en ms (por defecto 6000)
+     * @returns {Promise<object>} Datos JSON de la respuesta
+     * @throws {Error} Si la petición falla o supera el timeout
      */
-    async function _fetchWithTimeout(url, timeout = 5000) {
+    async function _fetchWithTimeout(url, timeout = 6000) {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), timeout);
+        const timeoutId  = setTimeout(() => controller.abort(), timeout);
 
         try {
             const response = await fetch(url, {
-                signal: controller.signal,
+                signal:  controller.signal,
                 headers: { 'Accept': 'application/json' },
             });
             clearTimeout(timeoutId);
@@ -136,16 +160,18 @@
 
     /**
      * Obtiene la ubicación del usuario por IP consultando APIs externas.
-     * @returns {Promise<object|null>}
+     * Intenta con la API primaria; si falla, usa la de respaldo.
+     * @returns {Promise<object|null>} Datos de ubicación o null si todas las APIs fallan
      */
     async function _getLocationByIP() {
         for (const api of GEO_APIS) {
             try {
-                const data = await _fetchWithTimeout(api.url, 6000);
-                return api.parser(data);
+                const data = await _fetchWithTimeout(api.url);
+                const parsed = api.parser(data);
+                console.log(`[geo] API ${api.name} OK:`, parsed.country_code);
+                return parsed;
             } catch (err) {
                 console.warn(`[geo] API ${api.name} falló:`, err.message);
-                continue;
             }
         }
         console.error('[geo] Todas las APIs de geolocalización fallaron');
@@ -153,21 +179,22 @@
     }
 
     /**
-     * Obtiene la ubicación del navegador usando Geolocation API.
-     * @returns {Promise<object|null>}
+     * Obtiene la ubicación del navegador usando la Geolocation API.
+     * Resuelve con null si no está disponible o el usuario la rechaza.
+     * @returns {Promise<object|null>} Coordenadas GPS o null
      */
     function _getLocationByGPS() {
         return new Promise((resolve) => {
             if (!navigator.geolocation) {
-                console.warn('[geo] Geolocation API no disponible');
+                console.warn('[geo] Geolocation API no disponible en este navegador');
                 resolve(null);
                 return;
             }
 
             const timeout = setTimeout(() => {
+                console.warn('[geo] GPS: timeout alcanzado');
                 resolve(null);
-                console.warn('[geo] GPS timeout');
-            }, 10000);
+            }, 10_000);
 
             navigator.geolocation.getCurrentPosition(
                 (position) => {
@@ -184,20 +211,22 @@
                     console.warn('[geo] GPS error:', error.message);
                     resolve(null);
                 },
-                { timeout: 10000, maximumAge: 0 }
+                { timeout: 10_000, maximumAge: 0, enableHighAccuracy: false }
             );
         });
     }
 
     /**
-     * Valida la consistencia entre ubicación por IP y GPS.
-     * Si hay discrepancia significativa, podría indicar VPN.
-     * @param {object} ipLocation
-     * @param {object} gpsLocation
-     * @returns {boolean} true si hay discrepancia sospechosa
+     * Detecta posible VPN comparando la distancia entre la ubicación
+     * por IP y la ubicación por GPS. Una discrepancia > 100 km sugiere VPN.
+     * @param {object|null} ipLocation  - Ubicación por IP
+     * @param {object|null} gpsLocation - Ubicación por GPS
+     * @returns {boolean} true si hay discrepancia sospechosa de VPN
      */
     function _detectVPNByLocationMismatch(ipLocation, gpsLocation) {
         if (!ipLocation || !gpsLocation) return false;
+        if (typeof ipLocation.latitude  !== 'number') return false;
+        if (typeof gpsLocation.latitude !== 'number') return false;
 
         const dist = _distance(
             ipLocation.latitude,
@@ -206,68 +235,88 @@
             gpsLocation.longitude
         );
 
-        // Si la distancia es > 100km, probablemente hay VPN
-        return dist > 100;
+        if (dist > VPN_DISTANCE_THRESHOLD) {
+            console.warn(`[geo] Discrepancia IP vs GPS: ${dist.toFixed(0)} km (umbral: ${VPN_DISTANCE_THRESHOLD} km)`);
+            return true;
+        }
+        return false;
     }
 
     /* ── API Pública ─────────────────────────────────────────── */
 
     /**
      * Inicializa el módulo de geolocalización.
-     * Obtiene ubicación por IP y GPS, valida acceso a Cuba.
-     * @returns {Promise<object>} { allowed: boolean, location: object, vpnDetected: boolean }
+     *
+     * Flujo:
+     *   1. Obtiene ubicación por IP (con fallback entre APIs)
+     *   2. Obtiene ubicación por GPS (si está disponible)
+     *   3. Detecta VPN por discrepancia o por flags de la API
+     *   4. Verifica si el usuario está en Cuba
+     *   5. Retorna el resultado de acceso
+     *
+     * @returns {Promise<{allowed: boolean, location: object|null, vpnDetected: boolean, inCuba: boolean, country: string|null}>}
      */
     async function init() {
         try {
-            console.log('[geo] Iniciando geolocalización...');
+            console.log('[geo] Iniciando verificación de geolocalización...');
 
-            // Obtener ubicación por IP
-            const ipLocation = await _getLocationByIP();
+            // Obtener ubicación por IP y GPS en paralelo para mayor velocidad
+            const [ipLocation, gpsLocation] = await Promise.all([
+                _getLocationByIP(),
+                _getLocationByGPS(),
+            ]);
+
             console.log('[geo] Ubicación por IP:', ipLocation);
-
-            // Obtener ubicación por GPS
-            const gpsLocation = await _getLocationByGPS();
             console.log('[geo] Ubicación por GPS:', gpsLocation);
 
-            // Detectar VPN por discrepancia
+            // Detectar VPN
             const vpnByMismatch = _detectVPNByLocationMismatch(ipLocation, gpsLocation);
-
-            // Detectar VPN por API
-            const vpnByAPI = ipLocation && (ipLocation.is_vpn || ipLocation.is_proxy || ipLocation.is_tor);
-
-            const isVpnDetected = vpnByMismatch || vpnByAPI;
+            const vpnByAPI      = ipLocation && (ipLocation.is_vpn || ipLocation.is_proxy || ipLocation.is_tor);
+            const isVpnDetected = vpnByMismatch || !!vpnByAPI;
             state.isVpnDetected = isVpnDetected;
 
             if (isVpnDetected) {
-                console.warn('[geo] ⚠️ VPN/Proxy detectado');
+                console.warn('[geo] ⚠️ VPN/Proxy/Tor detectado');
             }
 
-            // Usar GPS si está disponible, sino usar IP
+            // Usar GPS si está disponible y es más preciso; sino usar IP
             const location = gpsLocation || ipLocation;
             state.currentLocation = location;
-            state.locationCache = location;
-            state.cacheTTL = Date.now();
+            state.locationCache   = location;
+            state.cacheTTL        = Date.now();
 
             // Verificar si está en Cuba
-            const isInCuba = location && _isInCuba(location.latitude, location.longitude);
-            const countryCode = ipLocation && ipLocation.country_code;
+            const isInCuba = !!(
+                location &&
+                typeof location.latitude  === 'number' &&
+                typeof location.longitude === 'number' &&
+                _isInCuba(location.latitude, location.longitude)
+            );
 
-            console.log('[geo] País:', countryCode, '| En Cuba:', isInCuba);
+            // También verificar por código de país como respaldo
+            const countryCode   = ipLocation?.country_code || null;
+            const isInCubaByIP  = countryCode === 'CU';
+
+            // Se considera en Cuba si las coordenadas lo indican O si el código de país es CU
+            const finalInCuba = isInCuba || isInCubaByIP;
+
+            console.log('[geo] País:', countryCode, '| En Cuba (coords):', isInCuba, '| En Cuba (IP):', isInCubaByIP);
 
             // Bloquear si no está en Cuba O si usa VPN
-            const isBlocked = !isInCuba || isVpnDetected;
-            state.isBlocked = isBlocked;
+            const isBlocked  = !finalInCuba || isVpnDetected;
+            state.isBlocked  = isBlocked;
 
             return {
                 allowed:     !isBlocked,
                 location,
                 vpnDetected: isVpnDetected,
-                inCuba:      isInCuba,
+                inCuba:      finalInCuba,
                 country:     countryCode,
             };
 
         } catch (err) {
-            console.error('[geo] Error en inicialización:', err);
+            console.error('[geo] Error crítico en inicialización:', err);
+            // En caso de error, denegar acceso por seguridad
             return {
                 allowed:     false,
                 location:    null,
@@ -279,21 +328,22 @@
     }
 
     /**
-     * Inicia el monitoreo continuo de ubicación.
+     * Inicia el monitoreo continuo de ubicación mediante GPS.
      * Verifica cada 30 segundos si el usuario sigue en Cuba.
-     * @param {Function} onLocationChange - Callback cuando cambia la ubicación
-     * @param {Function} onBlockedChange - Callback cuando cambia estado de bloqueo
+     * Respeta el caché de 5 minutos para no saturar la API de GPS.
+     *
+     * @param {Function} onLocationChange - Callback(location) cuando cambia la ubicación
+     * @param {Function} onBlockedChange  - Callback(isBlocked) cuando cambia el estado de bloqueo
      */
     function startMonitoring(onLocationChange, onBlockedChange) {
         if (state.isMonitoring) return;
         state.isMonitoring = true;
 
-        console.log('[geo] Iniciando monitoreo continuo de ubicación...');
+        console.log('[geo] Iniciando monitoreo continuo de ubicación (intervalo: 30s)...');
 
-        // Monitoreo cada 30 segundos
         const intervalId = setInterval(async () => {
             try {
-                // Usar caché si está vigente
+                // Respetar caché para no saturar el GPS
                 const now = Date.now();
                 if (state.locationCache && (now - state.cacheTTL) < CACHE_TTL) {
                     return;
@@ -303,26 +353,26 @@
                 if (!gpsLocation) return;
 
                 const wasBlocked = state.isBlocked;
-                const isInCuba = _isInCuba(gpsLocation.latitude, gpsLocation.longitude);
-                state.isBlocked = !isInCuba;
+                const isInCuba   = _isInCuba(gpsLocation.latitude, gpsLocation.longitude);
+                state.isBlocked       = !isInCuba;
                 state.currentLocation = gpsLocation;
-                state.locationCache = gpsLocation;
-                state.cacheTTL = now;
+                state.locationCache   = gpsLocation;
+                state.cacheTTL        = now;
 
-                if (onLocationChange) {
+                if (typeof onLocationChange === 'function') {
                     onLocationChange(gpsLocation);
                 }
 
-                if (wasBlocked !== state.isBlocked && onBlockedChange) {
+                if (wasBlocked !== state.isBlocked && typeof onBlockedChange === 'function') {
                     onBlockedChange(state.isBlocked);
                 }
 
-                console.log('[geo] Ubicación actualizada:', gpsLocation);
+                console.log('[geo] Ubicación actualizada por monitoreo:', gpsLocation);
 
             } catch (err) {
-                console.error('[geo] Error en monitoreo:', err);
+                console.error('[geo] Error en ciclo de monitoreo:', err);
             }
-        }, 30000);
+        }, 30_000);
 
         state.watchId = intervalId;
     }
@@ -333,22 +383,22 @@
     function stopMonitoring() {
         if (state.watchId) {
             clearInterval(state.watchId);
-            state.watchId = null;
+            state.watchId      = null;
             state.isMonitoring = false;
             console.log('[geo] Monitoreo detenido');
         }
     }
 
     /**
-     * Obtiene la ubicación actual en caché.
-     * @returns {object|null}
+     * Retorna la ubicación actual almacenada en caché.
+     * @returns {object|null} Objeto de ubicación o null si no hay datos
      */
     function getCurrentLocation() {
         return state.currentLocation;
     }
 
     /**
-     * Comprueba si el usuario está bloqueado.
+     * Indica si el usuario está actualmente bloqueado.
      * @returns {boolean}
      */
     function isBlocked() {
@@ -356,7 +406,7 @@
     }
 
     /**
-     * Comprueba si se detectó VPN.
+     * Indica si se detectó uso de VPN, proxy o Tor.
      * @returns {boolean}
      */
     function isVpnDetected() {

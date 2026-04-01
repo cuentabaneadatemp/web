@@ -4,18 +4,38 @@
  *
  * Gestiona el estado de la aplicación, la interacción con el DOM,
  * los modales, los temas visuales y la integración con los módulos
- * API y DB.
+ * API, DB, GEO y PERMISSIONS.
+ *
+ * Dependencias (deben cargarse antes en este orden):
+ *   1. security.js  — Protecciones de seguridad del lado del cliente
+ *   2. geo.js       — Geolocalización y geobloqueo
+ *   3. permissions.js — Solicitud de permisos del navegador
+ *   4. db.js        — Persistencia local (sessionStorage / localStorage)
+ *   5. api.js       — Generación de números cubanos
+ *
+ * @module main
+ * @version 2.0
  */
 
 (function () {
     'use strict';
 
     /* ── Configuración ───────────────────────────────────────── */
+
+    /**
+     * Configuración global inmutable de la aplicación.
+     * @type {Readonly<object>}
+     */
     const CONFIG = Object.freeze({
-        BATCH_SIZE:          5,
-        WHATSAPP_CHANNEL:    'https://whatsapp.com/channel/0029VbCdMrUHgZWU8CQ6uu0h',
-        TOAST_DURATION:      2200,
-        DEFAULT_MESSAGE:     'Hola, vi tu número en la red anónima. ¿Charlamos?',
+        /** Número de tarjetas por lote de carga */
+        BATCH_SIZE:       5,
+        /** URL del canal oficial de WhatsApp */
+        WHATSAPP_CHANNEL: 'https://whatsapp.com/channel/0029VbCdMrUHgZWU8CQ6uu0h',
+        /** Duración del toast en ms */
+        TOAST_DURATION:   2200,
+        /** Mensaje por defecto del input */
+        DEFAULT_MESSAGE:  'Hola, vi tu número en la red anónima. ¿Charlamos?',
+        /** Definición de temas visuales */
         THEMES: {
             greenblue: {
                 gradStart:   '#0f172a',
@@ -28,43 +48,68 @@
     });
 
     /* ── Estado ──────────────────────────────────────────────── */
+
+    /**
+     * Estado mutable de la aplicación.
+     * @type {object}
+     */
     const state = {
-        numbers:         [],
-        usedSet:         new Set(),
-        currentMessage:  CONFIG.DEFAULT_MESSAGE,
-        isLoading:       false,
-        currentTheme:    'greenblue',
-        toastTimer:      null,
+        numbers:        [],
+        usedSet:        new Set(),
+        currentMessage: CONFIG.DEFAULT_MESSAGE,
+        isLoading:      false,
+        currentTheme:   'greenblue',
+        toastTimer:     null,
     };
 
     /* ── Referencias al DOM ──────────────────────────────────── */
+
+    /** Acceso rápido a elementos por ID */
     const $ = (id) => document.getElementById(id);
 
+    /**
+     * Mapa de referencias a elementos del DOM.
+     * Centraliza todos los accesos para facilitar mantenimiento.
+     * @type {object}
+     */
     const DOM = {
-        phoneList:       $('phoneList'),
-        counter:         $('numbersCounter'),
-        customMsg:       $('customMsg'),
-        searchBtn:       $('searchBtn'),
-        resetBtn:        $('resetBtn'),
-        loadMoreBtn:     $('loadMoreBtn'),
-        acceptModal:     $('acceptTermsModal'),
-        acceptBtn:       $('acceptTermsBtn'),
-        privacyModal:    $('privacyModal'),
-        termsModal:      $('termsModal'),
-        openPrivacy:     $('openPrivacy'),
-        openTerms:       $('openTerms'),
-        toast:           $('toastMsg'),
-        themeGreenBlue:  $('themeGreenBlue'),
-        themeRandom:     $('themeRandom'),
-        shareChannel:    $('shareWhatsAppChannel'),
+        // Contenido principal
+        phoneList:          $('phoneList'),
+        counter:            $('numbersCounter'),
+        customMsg:          $('customMsg'),
+        searchBtn:          $('searchBtn'),
+        resetBtn:           $('resetBtn'),
+        loadMoreBtn:        $('loadMoreBtn'),
+        // Modales de contenido
+        acceptModal:        $('acceptTermsModal'),
+        acceptBtn:          $('acceptTermsBtn'),
+        privacyModal:       $('privacyModal'),
+        termsModal:         $('termsModal'),
+        openPrivacy:        $('openPrivacy'),
+        openTerms:          $('openTerms'),
+        // Modales de sistema
+        loadingModal:       $('loadingPermissionsModal'),
+        blockedModal:       $('blockedAccessModal'),
+        permDeniedModal:    $('permissionsDeniedModal'),
+        blockedReason:      $('blockedReason'),
+        retryBtn:           $('retryPermissionsBtn'),
+        // Indicadores de permisos
+        permGeo:            $('perm-geo'),
+        permStorage:        $('perm-storage'),
+        permNotif:          $('perm-notif'),
+        // UI general
+        toast:              $('toastMsg'),
+        themeGreenBlue:     $('themeGreenBlue'),
+        themeRandom:        $('themeRandom'),
+        shareChannel:       $('shareWhatsAppChannel'),
     };
 
     /* ── Utilidades ──────────────────────────────────────────── */
 
     /**
-     * Escapa caracteres HTML para prevenir XSS.
-     * @param {string} str
-     * @returns {string}
+     * Escapa caracteres HTML especiales para prevenir XSS.
+     * @param {string} str - Cadena a escapar
+     * @returns {string} Cadena con caracteres HTML escapados
      */
     function escapeHtml(str) {
         if (!str) return '';
@@ -73,9 +118,9 @@
     }
 
     /**
-     * Muestra un mensaje toast temporal.
-     * @param {string} text
-     * @param {number} [duration]
+     * Muestra un mensaje toast temporal en la parte inferior de la pantalla.
+     * @param {string} text              - Texto del mensaje
+     * @param {number} [duration]        - Duración en ms (por defecto CONFIG.TOAST_DURATION)
      */
     function showToast(text, duration = CONFIG.TOAST_DURATION) {
         if (!DOM.toast) return;
@@ -88,9 +133,9 @@
     }
 
     /**
-     * Copia texto al portapapeles con fallback.
-     * @param {string} text
-     * @param {string} [successMsg]
+     * Copia texto al portapapeles usando la API moderna con fallback.
+     * @param {string} text          - Texto a copiar
+     * @param {string} [successMsg]  - Mensaje de éxito del toast
      */
     async function copyToClipboard(text, successMsg = 'Copiado al portapapeles') {
         try {
@@ -104,17 +149,18 @@
     /* ── Renderizado ─────────────────────────────────────────── */
 
     /**
-     * Construye el HTML de una tarjeta de número.
-     * @param {object} item
-     * @returns {string}
+     * Construye el HTML de una tarjeta de número de teléfono.
+     * @param {object} item - Objeto de número generado por API
+     * @returns {string} HTML de la tarjeta
      */
     function buildPhoneCardHTML(item) {
         return `
             <div class="phone-card" data-id="${escapeHtml(item.id)}" role="listitem">
                 <div class="phone-info">
                     <div class="phone-icon" aria-hidden="true">👤</div>
-                    <div>
+                    <div class="phone-details">
                         <div class="phone-number">${escapeHtml(item.formatted)}</div>
+                        <div class="phone-label">Número móvil cubano</div>
                     </div>
                 </div>
                 <div class="chat-buttons">
@@ -123,14 +169,16 @@
                        rel="noopener noreferrer"
                        class="wa-btn"
                        aria-label="Contactar por WhatsApp al ${escapeHtml(item.formatted)}">
-                        <i class="fab fa-whatsapp" aria-hidden="true"></i> WhatsApp
+                        <i class="fab fa-whatsapp" aria-hidden="true"></i>
+                        <span>WhatsApp</span>
                     </a>
                     <a href="${escapeHtml(item.telegramLink)}"
                        target="_blank"
                        rel="noopener noreferrer"
                        class="telegram-btn"
                        aria-label="Contactar por Telegram al ${escapeHtml(item.formatted)}">
-                        <i class="fab fa-telegram" aria-hidden="true"></i> Telegram
+                        <i class="fab fa-telegram" aria-hidden="true"></i>
+                        <span>Telegram</span>
                     </a>
                 </div>
             </div>
@@ -138,32 +186,37 @@
     }
 
     /**
-     * Re-renderiza la lista completa de números.
+     * Re-renderiza la lista completa de números en el DOM.
+     * Actualiza también el contador de números disponibles.
      */
     function renderNumbers() {
         if (!DOM.phoneList) return;
 
         if (state.numbers.length === 0) {
+            DOM.phoneList.setAttribute('aria-busy', 'false');
             DOM.phoneList.innerHTML = `
-                <div style="grid-column:1/-1; text-align:center; padding:2.5rem; color:var(--text-muted);">
-                    <i class="fas fa-phone-slash" style="font-size:2rem; margin-bottom:0.8rem; display:block;"></i>
-                    No hay números. Usa "Buscar" o "Cargar más".
+                <div class="empty-state">
+                    <i class="fas fa-phone-slash" aria-hidden="true"></i>
+                    <span>No hay números. Usa "Buscar" o "Cargar más".</span>
                 </div>`;
-            if (DOM.counter) DOM.counter.textContent = '0 números disponibles';
+            if (DOM.counter) DOM.counter.textContent = '0 números';
             return;
         }
 
+        DOM.phoneList.setAttribute('aria-busy', 'false');
         DOM.phoneList.innerHTML = state.numbers.map(buildPhoneCardHTML).join('');
+
         if (DOM.counter) {
-            DOM.counter.textContent = `${state.numbers.length} número${state.numbers.length !== 1 ? 's' : ''} disponible${state.numbers.length !== 1 ? 's' : ''}`;
+            const n = state.numbers.length;
+            DOM.counter.textContent = `${n} número${n !== 1 ? 's' : ''}`;
         }
     }
 
     /* ── Carga de números ────────────────────────────────────── */
 
     /**
-     * Carga un lote de números nuevos.
-     * @param {number}  [batchSize]
+     * Carga un lote de números nuevos y los añade o reemplaza en la lista.
+     * @param {number}  [batchSize]   - Cantidad de números a cargar
      * @param {boolean} [reset=false] - Si true, reemplaza la lista actual
      */
     async function loadNumbers(batchSize = CONFIG.BATCH_SIZE, reset = false) {
@@ -172,7 +225,7 @@
 
         if (DOM.loadMoreBtn) {
             DOM.loadMoreBtn.disabled = true;
-            DOM.loadMoreBtn.innerHTML = '<i class="fas fa-spinner fa-pulse" aria-hidden="true"></i> Generando...';
+            DOM.loadMoreBtn.innerHTML = '<i class="fas fa-spinner fa-pulse" aria-hidden="true"></i> <span>Generando...</span>';
         }
 
         try {
@@ -188,19 +241,14 @@
                 return;
             }
 
-            // Registrar en historial de DB
+            // Registrar en historial y estadísticas
             if (typeof DB !== 'undefined') {
                 newNumbers.forEach((n) => DB.History.add(n.raw));
                 DB.Stats.increment('totalGenerated', newNumbers.length);
             }
 
             state.usedSet = updatedSet;
-
-            if (reset) {
-                state.numbers = newNumbers;
-            } else {
-                state.numbers = [...state.numbers, ...newNumbers];
-            }
+            state.numbers = reset ? newNumbers : [...state.numbers, ...newNumbers];
 
             renderNumbers();
 
@@ -211,13 +259,13 @@
             state.isLoading = false;
             if (DOM.loadMoreBtn) {
                 DOM.loadMoreBtn.disabled = false;
-                DOM.loadMoreBtn.innerHTML = '<i class="fas fa-plus-circle" aria-hidden="true"></i> Cargar más';
+                DOM.loadMoreBtn.innerHTML = '<i class="fas fa-plus-circle" aria-hidden="true"></i> <span>Cargar más</span>';
             }
         }
     }
 
     /**
-     * Reinicia la lista de números.
+     * Reinicia la lista de números: limpia el historial y carga un nuevo lote.
      */
     function resetNumbers() {
         state.numbers = [];
@@ -233,7 +281,7 @@
     }
 
     /**
-     * Aplica el mensaje personalizado y recarga.
+     * Aplica el mensaje personalizado del input y recarga la lista.
      */
     function applySearch() {
         const msg = DOM.customMsg ? DOM.customMsg.value.trim() : '';
@@ -246,11 +294,12 @@
         resetNumbers();
     }
 
-    /* ── Temas ───────────────────────────────────────────────── */
+    /* ── Temas visuales ──────────────────────────────────────── */
 
     /**
-     * Aplica un tema visual.
-     * @param {'greenblue'|'random'} theme
+     * Aplica un tema visual a la aplicación modificando las variables CSS.
+     * Actualiza también el estado visual (aria-pressed) de los botones de tema.
+     * @param {'greenblue'|'random'} theme - Identificador del tema a aplicar
      */
     function applyTheme(theme) {
         state.currentTheme = theme;
@@ -266,24 +315,40 @@
             document.body.style.background = `radial-gradient(ellipse at 30% 10%, ${t.gradStart}, ${t.gradEnd})`;
 
         } else if (theme === 'random') {
-            const hue1    = Math.floor(Math.random() * 360);
-            const hue2    = (hue1 + 45) % 360;
-            const sat     = 55 + Math.floor(Math.random() * 30);
-            const light   = 18 + Math.floor(Math.random() * 18);
-            const accent  = (hue1 + 180) % 360;
-            const gStart  = `hsl(${hue1}, ${sat}%, ${light}%)`;
-            const gEnd    = `hsl(${hue2}, ${sat}%, ${Math.max(5, light - 10)}%)`;
-            const aColor  = `hsl(${accent}, 70%, 55%)`;
+            const hue1  = Math.floor(Math.random() * 360);
+            const hue2  = (hue1 + 45) % 360;
+            const sat   = 55 + Math.floor(Math.random() * 30);
+            const light = 18 + Math.floor(Math.random() * 18);
+            const accent = (hue1 + 180) % 360;
+            const gStart = `hsl(${hue1}, ${sat}%, ${light}%)`;
+            const gEnd   = `hsl(${hue2}, ${sat}%, ${Math.max(5, light - 10)}%)`;
+            const aColor = `hsl(${accent}, 70%, 55%)`;
 
             root.style.setProperty('--accent-color', aColor);
             root.style.setProperty('--grad-start',   gStart);
             root.style.setProperty('--grad-end',     gEnd);
             document.body.style.background = `radial-gradient(ellipse at 30% 10%, ${gStart}, ${gEnd})`;
         }
+
+        // Actualizar estado visual de los botones de tema
+        if (DOM.themeGreenBlue) {
+            const isActive = theme === 'greenblue';
+            DOM.themeGreenBlue.classList.toggle('active', isActive);
+            DOM.themeGreenBlue.setAttribute('aria-pressed', String(isActive));
+        }
+        if (DOM.themeRandom) {
+            const isActive = theme === 'random';
+            DOM.themeRandom.classList.toggle('active', isActive);
+            DOM.themeRandom.setAttribute('aria-pressed', String(isActive));
+        }
     }
 
     /* ── Canal de WhatsApp ───────────────────────────────────── */
 
+    /**
+     * Comparte el enlace del canal de WhatsApp usando la Web Share API
+     * o copiándolo al portapapeles como fallback.
+     */
     function shareWhatsAppChannel() {
         const url = CONFIG.WHATSAPP_CHANNEL;
 
@@ -300,23 +365,33 @@
 
     /* ── Modales ─────────────────────────────────────────────── */
 
+    /**
+     * Abre un modal y enfoca el primer elemento interactivo.
+     * @param {HTMLElement|null} modal - Elemento del modal a abrir
+     */
     function openModal(modal) {
         if (!modal) return;
         modal.classList.add('active');
         modal.setAttribute('aria-hidden', 'false');
-        // Enfocar primer elemento interactivo
-        const focusable = modal.querySelector('button, [tabindex="0"]');
+        const focusable = modal.querySelector('button, [tabindex="0"], a[href]');
         if (focusable) setTimeout(() => focusable.focus(), 50);
     }
 
+    /**
+     * Cierra un modal.
+     * @param {HTMLElement|null} modal - Elemento del modal a cerrar
+     */
     function closeModal(modal) {
         if (!modal) return;
         modal.classList.remove('active');
         modal.setAttribute('aria-hidden', 'true');
     }
 
+    /**
+     * Inicializa los modales de contenido (términos, privacidad).
+     * Verifica si el usuario ya aceptó los términos para omitir el modal.
+     */
     function initModals() {
-        // Comprobar si ya aceptó términos (persistido en DB)
         const alreadyAccepted = (typeof DB !== 'undefined')
             ? DB.Terms.hasAccepted()
             : false;
@@ -336,22 +411,16 @@
             });
         }
 
-        // Abrir modales de info
+        // Abrir modales de información
         if (DOM.openPrivacy) {
             DOM.openPrivacy.addEventListener('click', () => openModal(DOM.privacyModal));
-            DOM.openPrivacy.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') openModal(DOM.privacyModal);
-            });
         }
 
         if (DOM.openTerms) {
             DOM.openTerms.addEventListener('click', () => openModal(DOM.termsModal));
-            DOM.openTerms.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') openModal(DOM.termsModal);
-            });
         }
 
-        // Cerrar modales
+        // Cerrar modales con botón de cierre
         document.querySelectorAll('.modal-close').forEach((btn) => {
             btn.addEventListener('click', () => {
                 closeModal(DOM.privacyModal);
@@ -367,7 +436,7 @@
             });
         });
 
-        // Cerrar con Escape
+        // Cerrar con tecla Escape
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeModal(DOM.privacyModal);
@@ -378,63 +447,87 @@
 
     /* ── Eventos ─────────────────────────────────────────────── */
 
+    /**
+     * Registra todos los event listeners de la interfaz principal.
+     */
     function bindEvents() {
-        if (DOM.searchBtn)     DOM.searchBtn.addEventListener('click', applySearch);
-        if (DOM.resetBtn)      DOM.resetBtn.addEventListener('click', resetNumbers);
-        if (DOM.loadMoreBtn)   DOM.loadMoreBtn.addEventListener('click', () => loadNumbers(CONFIG.BATCH_SIZE, false));
+        if (DOM.searchBtn)      DOM.searchBtn.addEventListener('click', applySearch);
+        if (DOM.resetBtn)       DOM.resetBtn.addEventListener('click', resetNumbers);
+        if (DOM.loadMoreBtn)    DOM.loadMoreBtn.addEventListener('click', () => loadNumbers(CONFIG.BATCH_SIZE, false));
         if (DOM.themeGreenBlue) DOM.themeGreenBlue.addEventListener('click', () => applyTheme('greenblue'));
-        if (DOM.themeRandom)   DOM.themeRandom.addEventListener('click', () => applyTheme('random'));
-        if (DOM.shareChannel)  DOM.shareChannel.addEventListener('click', shareWhatsAppChannel);
+        if (DOM.themeRandom)    DOM.themeRandom.addEventListener('click', () => applyTheme('random'));
+        if (DOM.shareChannel)   DOM.shareChannel.addEventListener('click', shareWhatsAppChannel);
 
-        // Buscar al presionar Enter en el input
+        // Buscar al presionar Enter en el campo de mensaje
         if (DOM.customMsg) {
             DOM.customMsg.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') applySearch();
             });
         }
+
+        // Reintentar permisos
+        if (DOM.retryBtn) {
+            DOM.retryBtn.addEventListener('click', () => {
+                closeModal(DOM.permDeniedModal);
+                // Revocar caché de permisos para forzar nueva solicitud
+                if (typeof PERMISSIONS !== 'undefined') {
+                    PERMISSIONS.revokePermissionsCache();
+                }
+                location.reload();
+            });
+        }
     }
 
-     /* ── Verificación de Acceso (Geobloqueo + Permisos) ──────────── */
+    /* ── Verificación de Acceso (Geobloqueo + Permisos) ─────── */
 
     /**
-     * Verifica permisos y ubicación antes de permitir acceso.
-     * @returns {Promise<boolean>} true si se permite acceso
+     * Actualiza el indicador visual de un permiso en el modal de permisos rechazados.
+     * @param {HTMLElement|null} el      - Elemento li del permiso
+     * @param {boolean}          granted - true si fue concedido
+     */
+    function _updatePermissionIndicator(el, granted) {
+        if (!el) return;
+        const statusIcon = el.querySelector('.perm-status');
+        el.classList.toggle('perm-granted', granted);
+        el.classList.toggle('perm-denied', !granted);
+        if (statusIcon) {
+            statusIcon.className = granted
+                ? 'fas fa-check-circle perm-status'
+                : 'fas fa-times-circle perm-status';
+        }
+    }
+
+    /**
+     * Verifica los permisos del navegador y la ubicación geográfica
+     * antes de permitir el acceso a la plataforma.
+     *
+     * Flujo:
+     *   1. Muestra modal de carga
+     *   2. Solicita permisos obligatorios (geo, storage, notificaciones)
+     *   3. Si se rechazan → muestra modal de permisos rechazados
+     *   4. Verifica geolocalización y detecta VPN
+     *   5. Si está bloqueado → muestra modal de acceso denegado
+     *   6. Si todo OK → oculta modal de carga y retorna true
+     *
+     * @returns {Promise<boolean>} true si se permite el acceso
      */
     async function checkAccessRequirements() {
-        const loadingModal = $('loadingPermissionsModal');
-        const blockedModal = $('blockedAccessModal');
-        const permDeniedModal = $('permissionsDeniedModal');
-
         try {
             // Mostrar modal de carga
-            if (loadingModal) {
-                loadingModal.classList.add('active');
-                loadingModal.setAttribute('aria-hidden', 'false');
-            }
+            openModal(DOM.loadingModal);
 
             // 1. Solicitar permisos obligatorios
             if (typeof PERMISSIONS !== 'undefined') {
                 const permsResult = await PERMISSIONS.requestMandatoryPermissions();
 
+                // Actualizar indicadores visuales
+                _updatePermissionIndicator(DOM.permGeo,     permsResult.geolocation);
+                _updatePermissionIndicator(DOM.permStorage, permsResult.storage);
+                _updatePermissionIndicator(DOM.permNotif,   permsResult.notifications);
+
                 if (!permsResult.allApproved) {
-                    // Actualizar UI de permisos rechazados
-                    if ($('perm-geo')) {
-                        $('perm-geo').style.color = permsResult.geolocation ? '#25D366' : '#ff6b6b';
-                    }
-                    if ($('perm-storage')) {
-                        $('perm-storage').style.color = permsResult.storage ? '#25D366' : '#ff6b6b';
-                    }
-                    if ($('perm-notif')) {
-                        $('perm-notif').style.color = permsResult.notifications ? '#25D366' : '#ff6b6b';
-                    }
-
-                    // Mostrar modal de permisos rechazados
-                    if (loadingModal) loadingModal.classList.remove('active');
-                    if (permDeniedModal) {
-                        permDeniedModal.classList.add('active');
-                        permDeniedModal.setAttribute('aria-hidden', 'false');
-                    }
-
+                    closeModal(DOM.loadingModal);
+                    openModal(DOM.permDeniedModal);
                     return false;
                 }
             }
@@ -444,21 +537,16 @@
                 const geoResult = await GEO.init();
 
                 if (!geoResult.allowed) {
-                    // Bloquear acceso
                     const reason = geoResult.vpnDetected
-                        ? '\u274c VPN o Proxy detectado. Por favor desactívalo.'
-                        : `\u274c Tu ubicación (${geoResult.country || 'Desconocida'}) no está permitida.`;
+                        ? '❌ VPN o Proxy detectado. Por favor desactívalo.'
+                        : `❌ Tu ubicación (${geoResult.country || 'Desconocida'}) no está permitida.`;
 
-                    if ($('blockedReason')) {
-                        $('blockedReason').textContent = reason;
+                    if (DOM.blockedReason) {
+                        DOM.blockedReason.textContent = reason;
                     }
 
-                    if (loadingModal) loadingModal.classList.remove('active');
-                    if (blockedModal) {
-                        blockedModal.classList.add('active');
-                        blockedModal.setAttribute('aria-hidden', 'false');
-                    }
-
+                    closeModal(DOM.loadingModal);
+                    openModal(DOM.blockedModal);
                     console.warn('[main] Acceso bloqueado:', reason);
                     return false;
                 }
@@ -470,12 +558,11 @@
                     },
                     (isBlocked) => {
                         if (isBlocked) {
-                            console.error('[main] Usuario salió de Cuba - bloqueando acceso');
-                            if (blockedModal) {
-                                $('blockedReason').textContent = '\u274c Has salido de la región permitida.';
-                                blockedModal.classList.add('active');
-                                blockedModal.setAttribute('aria-hidden', 'false');
+                            console.error('[main] Usuario salió de Cuba — bloqueando acceso');
+                            if (DOM.blockedReason) {
+                                DOM.blockedReason.textContent = '❌ Has salido de la región permitida.';
                             }
+                            openModal(DOM.blockedModal);
                             // Ocultar contenido principal
                             if (DOM.phoneList) DOM.phoneList.innerHTML = '';
                         }
@@ -483,25 +570,26 @@
                 );
             }
 
-            // Ocultar modal de carga
-            if (loadingModal) {
-                loadingModal.classList.remove('active');
-                loadingModal.setAttribute('aria-hidden', 'true');
-            }
-
+            // Todo OK: ocultar modal de carga
+            closeModal(DOM.loadingModal);
             return true;
 
         } catch (err) {
             console.error('[main] Error en verificación de acceso:', err);
-            if (loadingModal) loadingModal.classList.remove('active');
+            closeModal(DOM.loadingModal);
             return false;
         }
     }
 
-    /* ── Inicialización ──────────────────────────────── */
+    /* ── Inicialización ──────────────────────────────────────── */
 
+    /**
+     * Punto de entrada de la aplicación.
+     * Inicializa la sesión, registra eventos, aplica el tema
+     * y ejecuta la verificación de acceso.
+     */
     function init() {
-        // Inicializar DB
+        // Inicializar sesión en DB
         if (typeof DB !== 'undefined') {
             DB.Session.init();
         }
@@ -517,22 +605,11 @@
         });
     }
 
-    // Botón de reintentar permisos
-    const retryBtn = $('retryPermissionsBtn');
-    if (retryBtn) {
-        retryBtn.addEventListener('click', () => {
-            const permDeniedModal = $('permissionsDeniedModal');
-            if (permDeniedModal) permDeniedModal.classList.remove('active');
-            location.reload();
-        });
-    }
-
     // Arrancar cuando el DOM esté listo
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
         init();
-    };
     }
 
 })();

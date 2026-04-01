@@ -54,12 +54,12 @@ El proyecto ha sido reestructurado para mejorar su mantenibilidad y escalabilida
 │   │       ├── db.js           # Gestión de estado, caché y estadísticas
 │   │       ├── api.js          # Lógica de generación y formateo de números
 │   │       └── main.js         # Controladores de UI y eventos
-│   └── index.html              # Estructura semántica principal
 ├── .github/
 │   └── workflows/
 │       └── deploy.yml          # Pipeline de integración continua (CI/CD)
+├── docs/
+│   └── github-pages-deploy.yml # Archivo de referencia del workflow (no activo)
 ├── .gitignore                  # Reglas de exclusión de Git
-├── ARCHITECTURE.md             # Detalles técnicos de la reestructuración
 ├── CONTRIBUTING.md             # Guía para nuevos colaboradores
 ├── LICENSE                     # Licencia MIT
 ├── README.md                   # Documentación principal
@@ -99,15 +99,15 @@ El proyecto es completamente estático y no requiere de un servidor backend comp
    - **Opción A (Recomendada):** Usa un servidor local para evitar problemas con CORS.
      ```bash
      # Usando npx (requiere Node.js)
-     npx http-server src/
+     npx serve .
      
      # Usando Python 3
-     python3 -m http.server -d src/
+     python3 -m http.server 8080
      ```
-   - **Opción B:** Simplemente abre el archivo `src/index.html` en tu navegador.
+   - **Opción B:** Simplemente abre el archivo `index.html` (en la raíz) en tu navegador.
 
 3. **Uso:**
-   - Navega a `http://localhost:8080` (o el puerto que asigne tu servidor).
+   - Navega a `http://localhost:8080` (o el puerto que asigne tu servidor). El punto de entrada es `index.html` en la raíz del repositorio.
    - **Acepta los permisos obligatorios** y los términos de uso en los modales iniciales.
    - Utiliza el botón "Buscar" o "Cargar más" para generar nuevos contactos.
 

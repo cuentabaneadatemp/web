@@ -3,11 +3,17 @@
  * Contactos Anónimos v2.0
  *
  * Genera números de teléfono móvil cubanos válidos de forma
- * aleatoria, formatea los datos y construye los enlaces de
- * contacto para WhatsApp y Telegram.
+ * aleatoria, los formatea y construye los enlaces de contacto
+ * para WhatsApp y Telegram.
  *
- * Formato cubano: +53 5X XXX XXXX
- * Prefijo móvil:  5 + dígito válido (2-9) + 6 dígitos
+ * Formato de número cubano: +53 5X XXX XXXX
+ *   - Prefijo internacional: +53
+ *   - Primer dígito móvil:   5 (fijo para móviles)
+ *   - Segundo dígito válido: 2–9
+ *   - Seis dígitos restantes: aleatorios (0–9)
+ *
+ * @module API
+ * @version 2.0
  */
 
 (function (global) {
@@ -15,22 +21,32 @@
 
     /* ── Constantes ──────────────────────────────────────────── */
 
-    /** Segundo dígito válido para móviles cubanos (5X...) */
+    /**
+     * Segundo dígito válido para números móviles cubanos.
+     * Los números cubanos siguen el patrón: +53 5X XXX XXXX
+     * donde X es uno de estos dígitos.
+     */
     const VALID_SECOND_DIGITS = Object.freeze(['2', '3', '4', '5', '6', '7', '8', '9']);
 
-    /** Prefijo internacional de Cuba */
+    /** Código de país de Cuba (sin el signo +) */
     const COUNTRY_CODE = '53';
 
-    /** Intentos máximos para evitar bucles infinitos */
+    /**
+     * Número máximo de intentos para generar números únicos.
+     * Evita bucles infinitos cuando el conjunto de usados es muy grande.
+     */
     const MAX_ATTEMPTS = 50_000;
 
-    /** Mensaje por defecto si no se proporciona uno */
+    /** Mensaje por defecto si el usuario no proporciona uno */
     const DEFAULT_MESSAGE = 'Hola, vi tu número en la red anónima. ¿Charlamos?';
+
+    /** Longitud máxima del mensaje personalizado */
+    const MAX_MESSAGE_LENGTH = 300;
 
     /* ── Generación de números ───────────────────────────────── */
 
     /**
-     * Genera un número de móvil cubano crudo (sin formato).
+     * Genera un número de móvil cubano crudo (sin formato ni prefijo).
      * @returns {string} 8 dígitos, ej. "52345678"
      */
     function _generateRaw() {
@@ -45,9 +61,9 @@
     }
 
     /**
-     * Formatea un número crudo al estilo internacional.
-     * @param {string} raw - 8 dígitos
-     * @returns {string} "+53 5X XXX XXXX"
+     * Formatea un número crudo al estilo internacional cubano.
+     * @param {string} raw - 8 dígitos sin formato
+     * @returns {string} Número formateado, ej. "+53 52 345 6789"
      */
     function formatNumber(raw) {
         if (!raw || raw.length !== 8) return raw;
@@ -55,65 +71,77 @@
     }
 
     /**
-     * Construye el enlace de WhatsApp para un número.
-     * @param {string} raw
-     * @param {string} message
-     * @returns {string}
+     * Construye el enlace de WhatsApp para iniciar un chat.
+     * Formato: https://wa.me/{countryCode}{number}?text={message}
+     * @param {string} raw     - Número crudo de 8 dígitos
+     * @param {string} message - Mensaje pre-rellenado
+     * @returns {string} URL de WhatsApp
      */
     function _buildWhatsAppLink(raw, message) {
         const number = `${COUNTRY_CODE}${raw}`;
-        const text   = encodeURIComponent(
-            _sanitizeMessage(message || DEFAULT_MESSAGE)
-        );
+        const text   = encodeURIComponent(_sanitizeMessage(message || DEFAULT_MESSAGE));
         return `https://wa.me/${number}?text=${text}`;
     }
 
     /**
-     * Construye el enlace de Telegram para un número.
-     * @param {string} raw
-     * @param {string} message
-     * @returns {string}
+     * Construye el enlace de Telegram para iniciar un chat por número.
+     *
+     * CORRECCIÓN v2.0: El formato anterior usaba encodeURIComponent en el número,
+     * lo que generaba URLs inválidas (ej: https://t.me/%2B5352345678).
+     * El formato correcto para Telegram es: https://t.me/+{countryCode}{number}
+     *
+     * @param {string} raw     - Número crudo de 8 dígitos
+     * @param {string} message - Mensaje pre-rellenado
+     * @returns {string} URL de Telegram
      */
     function _buildTelegramLink(raw, message) {
         const number = `+${COUNTRY_CODE}${raw}`;
-        const text   = encodeURIComponent(
-            _sanitizeMessage(message || DEFAULT_MESSAGE)
-        );
-        return `https://t.me/${encodeURIComponent(number)}?text=${text}`;
+        const text   = encodeURIComponent(_sanitizeMessage(message || DEFAULT_MESSAGE));
+        return `https://t.me/${number}?text=${text}`;
     }
 
     /**
-     * Sanitiza el mensaje del usuario para evitar inyecciones.
-     * @param {string} msg
-     * @returns {string}
+     * Sanitiza el mensaje del usuario para prevenir inyecciones.
+     * Elimina caracteres de control y limita la longitud.
+     * @param {string} msg - Mensaje a sanitizar
+     * @returns {string} Mensaje limpio, nunca vacío
      */
     function _sanitizeMessage(msg) {
         if (typeof msg !== 'string') return DEFAULT_MESSAGE;
-        // Eliminar caracteres de control y limitar longitud
-        return msg
-            .replace(/[\x00-\x1F\x7F]/g, '')
+        const sanitized = msg
+            .replace(/[\x00-\x1F\x7F]/g, '') // Eliminar caracteres de control
             .trim()
-            .slice(0, 300) || DEFAULT_MESSAGE;
+            .slice(0, MAX_MESSAGE_LENGTH);
+        return sanitized || DEFAULT_MESSAGE;
     }
 
     /**
      * Genera un ID único para cada entrada de número.
-     * @param {string} raw
-     * @returns {string}
+     * Combina timestamp, número y aleatoriedad para garantizar unicidad.
+     * @param {string} raw - Número crudo
+     * @returns {string} ID único en formato base36
      */
     function _generateEntryId(raw) {
-        return `${Date.now().toString(36)}-${raw}-${Math.random().toString(36).slice(2, 6)}`;
+        return `${Date.now().toString(36)}-${raw}-${Math.random().toString(36).slice(2, 7)}`;
     }
 
-    /* ── API principal ───────────────────────────────────────── */
+    /* ── API Principal ───────────────────────────────────────── */
 
     /**
-     * Genera un lote de números únicos no repetidos.
+     * Genera un lote de números de teléfono únicos no repetidos.
      *
-     * @param {number}      count       - Cantidad de números a generar
-     * @param {Set<string>} existingSet - Conjunto de números ya usados
-     * @param {string}      [message]   - Mensaje personalizado para los enlaces
-     * @returns {{ newNumbers: Array, usedSet: Set<string> }}
+     * @param {number}      count       - Cantidad de números a generar (máx. 50)
+     * @param {Set<string>} existingSet - Conjunto de números ya generados (para evitar repetición)
+     * @param {string}      [message]   - Mensaje personalizado para los enlaces de contacto
+     * @returns {{ newNumbers: Array<object>, usedSet: Set<string> }}
+     *
+     * Cada objeto en newNumbers contiene:
+     *   - id:           {string}  ID único de la entrada
+     *   - raw:          {string}  Número crudo (8 dígitos)
+     *   - formatted:    {string}  Número formateado (+53 5X XXX XXXX)
+     *   - waLink:       {string}  Enlace de WhatsApp
+     *   - telegramLink: {string}  Enlace de Telegram
+     *   - generatedAt:  {number}  Timestamp de generación
      */
     function generateUniqueNumbers(count, existingSet, message) {
         const safeCount = Math.max(1, Math.min(count, 50));
@@ -139,13 +167,17 @@
             });
         }
 
+        if (attempts >= MAX_ATTEMPTS) {
+            console.warn(`[api] Se alcanzó el límite de intentos (${MAX_ATTEMPTS}). Generados: ${results.length}/${safeCount}`);
+        }
+
         return { newNumbers: results, usedSet: used };
     }
 
     /**
      * Valida si una cadena es un número de móvil cubano válido.
-     * @param {string} raw
-     * @returns {boolean}
+     * @param {string} raw - Cadena a validar
+     * @returns {boolean} true si es un número móvil cubano válido
      */
     function isValidCubanMobile(raw) {
         if (typeof raw !== 'string' || raw.length !== 8) return false;
