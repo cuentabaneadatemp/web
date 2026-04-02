@@ -125,7 +125,11 @@
     function showToast(text, duration = CONFIG.TOAST_DURATION) {
         if (!DOM.toast) return;
         clearTimeout(state.toastTimer);
-        DOM.toast.textContent = text;
+        // Intentar traducir si i18n está disponible
+        const displayText = (typeof i18n !== 'undefined' && text.includes('.'))
+            ? i18n.t(text, { plural: '' })
+            : text;
+        DOM.toast.textContent = displayText;
         DOM.toast.classList.add('show');
         state.toastTimer = setTimeout(() => {
             DOM.toast.classList.remove('show');
@@ -458,6 +462,13 @@
         if (DOM.themeRandom)    DOM.themeRandom.addEventListener('click', () => applyTheme('random'));
         if (DOM.shareChannel)   DOM.shareChannel.addEventListener('click', shareWhatsAppChannel);
 
+        // Escuchar cambios de idioma
+        if (typeof window !== 'undefined') {
+            window.addEventListener('languagechange', () => {
+                renderNumbers();
+            });
+        }
+
         // Buscar al presionar Enter en el campo de mensaje
         if (DOM.customMsg) {
             DOM.customMsg.addEventListener('keydown', (e) => {
@@ -589,12 +600,19 @@
      * y ejecuta la verificación de acceso.
      */
     function init() {
+        // Inicializar internacionalización
+        if (typeof i18n !== 'undefined') {
+            i18n.init();
+        }
+
         // Inicializar sesión en DB
         if (typeof DB !== 'undefined') {
             DB.Session.init();
         }
 
         bindEvents();
+        bindLanguageToggle();
+        bindBetaToggle();
         applyTheme('greenblue');
 
         // Verificar permisos y ubicación antes de mostrar la app
@@ -603,6 +621,52 @@
                 initModals();
             }
         });
+    }
+
+    /**
+     * Vincula el botón de cambio de idioma.
+     */
+    function bindLanguageToggle() {
+        const langToggle = document.getElementById('langToggle');
+        if (!langToggle) return;
+
+        langToggle.addEventListener('click', () => {
+            const current = (typeof i18n !== 'undefined') ? i18n.getLanguage() : 'es';
+            const next = current === 'es' ? 'en' : 'es';
+            if (typeof i18n !== 'undefined') {
+                i18n.setLanguage(next);
+                const label = document.getElementById('langLabel');
+                if (label) label.textContent = next.toUpperCase();
+            }
+        });
+
+        // Establecer etiqueta inicial
+        const label = document.getElementById('langLabel');
+        if (label) {
+            const current = (typeof i18n !== 'undefined') ? i18n.getLanguage() : 'es';
+            label.textContent = current.toUpperCase();
+        }
+    }
+
+    /**
+     * Vincula el botón de modo beta.
+     */
+    function bindBetaToggle() {
+        const betaToggle = document.getElementById('betaToggle');
+        if (!betaToggle) return;
+
+        betaToggle.addEventListener('click', () => {
+            if (typeof BetaPanel === 'undefined') return;
+            BetaPanel.toggleBetaPanel();
+        });
+
+        // Escuchar cambios de modo beta
+        if (typeof window !== 'undefined') {
+            window.addEventListener('betamodechange', (e) => {
+                betaToggle.classList.toggle('active', e.detail.enabled);
+                betaToggle.setAttribute('aria-pressed', String(e.detail.enabled));
+            });
+        }
     }
 
     // Arrancar cuando el DOM esté listo

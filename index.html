@@ -164,6 +164,15 @@
 
     <!-- ── Estilos ──────────────────────────────────────────── -->
     <link rel="stylesheet" href="src/assets/css/main.css">
+
+    <!-- ── Scripts de Internacionalización y Beta ──────────────── -->
+    <script src="src/assets/js/i18n.js" defer></script>
+    <script src="src/assets/js/beta.js" defer></script>
+    <script src="src/assets/js/advanced-api.js" defer></script>
+    <script src="src/assets/js/beta-panel.js" defer></script>
+
+    <!-- ── Estilos Beta ─────────────────────────────────── -->
+    <link rel="stylesheet" href="src/assets/css/beta.css">
 </head>
 
 <body>
@@ -199,11 +208,19 @@
         <div class="theme-switcher" role="group" aria-label="Selector de tema visual">
             <button id="themeGreenBlue" class="theme-btn active" aria-label="Aplicar tema verde y azul" aria-pressed="true">
                 <i class="fas fa-palette" aria-hidden="true"></i>
-                <span>Verde/Azul</span>
+                <span data-i18n="header.theme.greenblue">Verde/Azul</span>
             </button>
             <button id="themeRandom" class="theme-btn" aria-label="Aplicar tema aleatorio" aria-pressed="false">
                 <i class="fas fa-shuffle" aria-hidden="true"></i>
-                <span>Aleatorio</span>
+                <span data-i18n="header.theme.random">Aleatorio</span>
+            </button>
+            <button id="langToggle" class="theme-btn" aria-label="Cambiar idioma" aria-pressed="false" title="Cambiar idioma">
+                <i class="fas fa-globe" aria-hidden="true"></i>
+                <span id="langLabel">EN</span>
+            </button>
+            <button id="betaToggle" class="theme-btn" aria-label="Abrir panel de modo beta" aria-pressed="false" title="Modo Beta">
+                <i class="fas fa-flask" aria-hidden="true"></i>
+                <span>BETA</span>
             </button>
         </div>
     </header>
@@ -224,14 +241,15 @@
             <!-- Barra de filtros -->
             <div class="filters-bar" role="search" aria-label="Buscar con mensaje personalizado">
                 <div class="input-group input-group--grow">
-                    <label for="customMsg">
+                    <label for="customMsg" data-i18n="section.message">
                         <i class="fas fa-comment-dots" aria-hidden="true"></i>
                         Mensaje personalizado
                     </label>
                     <input type="text"
                            id="customMsg"
                            name="customMsg"
-                           placeholder="Mensaje inicial..."
+                           data-i18n-placeholder="message.placeholder"
+                           placeholder="Escribe tu mensaje personalizado..."
                            value="Hola, vi tu número en la red anónima. ¿Charlamos?"
                            maxlength="300"
                            autocomplete="off"
@@ -242,14 +260,14 @@
                     <label class="label-sr-only">&nbsp;</label>
                     <button id="searchBtn" class="btn btn--primary" type="button" aria-label="Buscar números con el mensaje personalizado">
                         <i class="fas fa-search" aria-hidden="true"></i>
-                        <span>Buscar</span>
+                        <span data-i18n="btn.search">Buscar</span>
                     </button>
                 </div>
                 <div class="input-group input-group--fixed">
                     <label class="label-sr-only">&nbsp;</label>
                     <button id="resetBtn" class="btn btn--danger" type="button" aria-label="Reiniciar lista de números">
                         <i class="fas fa-rotate-right" aria-hidden="true"></i>
-                        <span>Reiniciar</span>
+                        <span data-i18n="btn.reset">Reiniciar</span>
                     </button>
                 </div>
             </div>
@@ -273,7 +291,7 @@
             <div class="load-more">
                 <button id="loadMoreBtn" class="btn btn--outline" type="button" aria-label="Cargar más números">
                     <i class="fas fa-plus-circle" aria-hidden="true"></i>
-                    <span>Cargar más</span>
+                    <span data-i18n="btn.loadMore">Cargar más</span>
                 </button>
             </div>
         </section>
