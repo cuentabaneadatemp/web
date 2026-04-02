@@ -108,6 +108,7 @@
     <link rel="stylesheet" href="src/assets/css/main.css">
     <link rel="stylesheet" href="src/assets/css/premium.css">
     <link rel="stylesheet" href="src/assets/css/animations.css">
+    <link rel="stylesheet" href="src/assets/css/apk-modal.css">
 
     <!-- ═══════════════════════════════════════════════════════════
          SCHEMA.ORG (JSON-LD)
@@ -330,14 +331,14 @@
                 <i class="fab fa-whatsapp" aria-hidden="true"></i>
                 <span>Canal WhatsApp</span>
             </button>
-            <a href="downloads/ContactosAnonimos.apklink"
-               download="ContactosAnonimos.apklink"
+            <button id="downloadAPKBtn"
                class="footer-link footer-link--apk"
+               type="button"
                aria-label="Descargar aplicación APK para Android"
                title="Descargar APKLink (1.3 KB)">
                 <i class="fab fa-android" aria-hidden="true"></i>
                 <span data-i18n="footer.download_apk">Descargar APK</span>
-            </a>
+            </button>
             <div class="footer-brand" aria-hidden="true">
                 <img src="src/assets/img/favicon.svg"
                      alt=""
@@ -554,6 +555,8 @@
 <script src="src/assets/js/geo-advanced.js"       defer></script>
 <script src="src/assets/js/permissions-advanced.js" defer></script>
 <script src="src/assets/js/security-advanced.js"  defer></script>
+<!-- Gestor de Descarga de APK -->
+<script src="src/assets/js/apk-download-manager.js" defer></script>
 <!-- PWA Security y Componentes UI Premium -->
 <script src="src/assets/js/pwa-security.js"       defer></script>
 <script src="src/assets/js/ui-components.js"      defer></script>

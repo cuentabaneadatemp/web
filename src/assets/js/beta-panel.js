@@ -104,7 +104,6 @@
             });
         }
     }
-
     /**
      * Renderiza la lista de características disponibles.
      */
@@ -117,28 +116,73 @@
         const features = BETA.getAllFeatures();
         const featureStatus = BETA.getFeatureStatus();
 
-        container.innerHTML = features.map((feature) => {
-            const enabled = featureStatus[feature.id] || false;
-            return `
-                <div class="beta-feature-item" data-feature-id="${feature.id}">
-                    <div class="beta-feature-header">
-                        <label class="beta-feature-toggle">
-                            <input type="checkbox"
-                                   class="beta-feature-checkbox"
-                                   data-feature-id="${feature.id}"
-                                   ${enabled ? 'checked' : ''}
-                                   aria-label="Activar ${feature.name}">
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <div class="beta-feature-info">
-                            <h4 class="beta-feature-name">${_escapeHtml(feature.name)}</h4>
-                            <p class="beta-feature-desc">${_escapeHtml(feature.description)}</p>
-                            <span class="beta-feature-version">v${feature.version}</span>
+        // Agrupar características por categoría
+        const categorized = {};
+        features.forEach(feature => {
+            const category = feature.category || 'other';
+            if (!categorized[category]) {
+                categorized[category] = [];
+            }
+            categorized[category].push(feature);
+        });
+
+        // Renderizar por categorías
+        const categoryOrder = ['mobile', 'ai', 'messaging', 'organization', 'search', 'storage', 'accessibility', 'privacy', 'productivity', 'other'];
+        const categoryLabels = {
+            mobile: '📱 Móvil',
+            ai: '🤖 Inteligencia Artificial',
+            messaging: '💬 Mensajería',
+            organization: '📁 Organización',
+            search: '🔍 Búsqueda',
+            storage: '💾 Almacenamiento',
+            accessibility: '♿ Accesibilidad',
+            privacy: '🔒 Privacidad',
+            productivity: '⚡ Productividad',
+            other: '⚙️ Otros',
+        };
+
+        let html = '';
+        categoryOrder.forEach(category => {
+            if (categorized[category]) {
+                html += `<div class="beta-category">
+                    <h3 class="beta-category-title">${categoryLabels[category]}</h3>
+                    <div class="beta-category-features">`;
+
+                categorized[category].forEach(feature => {
+                    const enabled = featureStatus[feature.id] || false;
+                    html += `
+                        <div class="beta-feature-item" data-feature-id="${feature.id}" data-category="${category}">
+                            <div class="beta-feature-header">
+                                <label class="beta-feature-toggle">
+                                    <input type="checkbox"
+                                           class="beta-feature-checkbox"
+                                           data-feature-id="${feature.id}"
+                                           ${enabled ? 'checked' : ''}
+                                           aria-label="Activar ${feature.name}">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                                <div class="beta-feature-info">
+                                    <h4 class="beta-feature-name">${_escapeHtml(feature.name)}</h4>
+                                    <p class="beta-feature-desc">${_escapeHtml(feature.description)}</p>
+                                    <span class="beta-feature-version">v${feature.version}</span>
+                                    ${feature.id === 'mobileAppDownload' ? '<span class="beta-feature-badge">Requiere Beta</span>' : ''}
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
+                    `;
+                });
+
+                html += `</div></div>`;
+            }
+        });
+
+        container.innerHTML = html;
 
         // Vincular eventos de checkboxes
-        container.querySelectorAll('.beta-feature-checkbox').forEach((checkbox) => {\n            checkbox.addEventListener('change', _handleFeatureToggle);\n        });\n\n        // Actualizar información de versión\n        _updateVersionInfo();\n    }\n\n    /**\n     * Maneja el cambio de estado de una característica.\n     */\n    function _handleFeatureToggle(e) {\n        if (typeof BETA === 'undefined') return;\n\n        const featureId = e.target.getAttribute('data-feature-id');\n        const enabled = e.target.checked;\n\n        if (enabled) {\n            BETA.enableFeature(featureId);\n        } else {\n            BETA.disableFeature(featureId);\n        }\n\n        console.log(`[beta-panel] Característica ${featureId}: ${enabled ? 'habilitada' : 'deshabilitada'}`);\n    }\n\n    /**\n     * Maneja la exportación de datos.\n     */\n    function _handleExportData() {\n        if (typeof AdvancedAPI === 'undefined') {\n            console.error('[beta-panel] AdvancedAPI no disponible');\n            return;\n        }\n\n        // Mostrar opciones de exportación\n        const format = confirm('¿Exportar como JSON? (OK) o CSV (Cancelar)');\n\n        if (format) {\n            const json = AdvancedAPI.exportHistoryAsJSON();\n            AdvancedAPI.downloadFile(json, `contactos-anonimos-${Date.now()}.json`, 'application/json');\n        } else {\n            const csv = AdvancedAPI.exportHistoryAsCSV();\n            AdvancedAPI.downloadFile(csv, `contactos-anonimos-${Date.now()}.csv`, 'text/csv');\n        }\n    }\n\n    /**\n     * Maneja el reseteo de características.\n     */\n    function _handleResetFeatures() {\n        if (typeof BETA === 'undefined') return;\n\n        if (confirm('¿Estás seguro? Esto deshabilitará todas las características experimentales.')) {\n            BETA.reset();\n            _renderFeatures();\n            console.log('[beta-panel] Características reseteadas');\n        }\n    }\n\n    /**\n     * Actualiza la información de versión.\n     */\n    function _updateVersionInfo() {\n        if (typeof BETA === 'undefined') return;\n\n        const versionInfo = BETA.getVersion();\n        const infoEl = document.getElementById('betaVersionInfo');\n\n        if (infoEl) {\n            infoEl.textContent = `Beta v${versionInfo.betaVersion} | ${versionInfo.enabledCount}/${versionInfo.featureCount} características habilitadas`;\n        }\n    }\n\n    /**\n     * Escapa caracteres HTML especiales.\n     */\n    function _escapeHtml(str) {\n        if (!str) return '';\n        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', \"'\": '&#39;' };\n        return String(str).replace(/[&<>\"']/g, (c) => map[c]);\n    }\n\n    /* ── API Pública ─────────────────────────────────────────– */\n\n    /**\n     * Muestra el panel beta.\n     */\n    function showBetaPanel() {\n        createBetaPanel();\n        const panel = document.getElementById(PANEL_ID);\n        if (panel) {\n            panel.classList.add('active');\n            panel.setAttribute('aria-hidden', 'false');\n        }\n    }\n\n    /**\n     * Oculta el panel beta.\n     */\n    function hideBetaPanel() {\n        const panel = document.getElementById(PANEL_ID);\n        if (panel) {\n            panel.classList.remove('active');\n            panel.setAttribute('aria-hidden', 'true');\n        }\n    }\n\n    /**\n     * Alterna la visibilidad del panel beta.\n     */\n    function toggleBetaPanel() {\n        const panel = document.getElementById(PANEL_ID);\n        if (panel && panel.classList.contains('active')) {\n            hideBetaPanel();\n        } else {\n            showBetaPanel();\n        }\n    }\n\n    /**\n     * Actualiza el panel con cambios de características.\n     */\n    function updatePanel() {\n        _renderFeatures();\n    }\n\n    /* ── Exportación ─────────────────────────────────────────– */\n\n    global.BetaPanel = Object.freeze({\n        showBetaPanel,\n        hideBetaPanel,\n        toggleBetaPanel,\n        updatePanel,\n    });\n\n})(window);\n
+        container.querySelectorAll('.beta-feature-checkbox').forEach((checkbox) => {
+            checkbox.addEventListener('change', _handleFeatureToggle);
+        });
+
+        // Actualizar información de versión
+        _updateVersionInfo();
+    }\n    }\n\n    /**\n     * Maneja el cambio de estado de una característica.\n     */\n    function _handleFeatureToggle(e) {\n        if (typeof BETA === 'undefined') return;\n\n        const featureId = e.target.getAttribute('data-feature-id');\n        const enabled = e.target.checked;\n\n        if (enabled) {\n            BETA.enableFeature(featureId);\n        } else {\n            BETA.disableFeature(featureId);\n        }\n\n        console.log(`[beta-panel] Característica ${featureId}: ${enabled ? 'habilitada' : 'deshabilitada'}`);\n    }\n\n    /**\n     * Maneja la exportación de datos.\n     */\n    function _handleExportData() {\n        if (typeof AdvancedAPI === 'undefined') {\n            console.error('[beta-panel] AdvancedAPI no disponible');\n            return;\n        }\n\n        // Mostrar opciones de exportación\n        const format = confirm('¿Exportar como JSON? (OK) o CSV (Cancelar)');\n\n        if (format) {\n            const json = AdvancedAPI.exportHistoryAsJSON();\n            AdvancedAPI.downloadFile(json, `contactos-anonimos-${Date.now()}.json`, 'application/json');\n        } else {\n            const csv = AdvancedAPI.exportHistoryAsCSV();\n            AdvancedAPI.downloadFile(csv, `contactos-anonimos-${Date.now()}.csv`, 'text/csv');\n        }\n    }\n\n    /**\n     * Maneja el reseteo de características.\n     */\n    function _handleResetFeatures() {\n        if (typeof BETA === 'undefined') return;\n\n        if (confirm('¿Estás seguro? Esto deshabilitará todas las características experimentales.')) {\n            BETA.reset();\n            _renderFeatures();\n            console.log('[beta-panel] Características reseteadas');\n        }\n    }\n\n    /**\n     * Actualiza la información de versión.\n     */\n    function _updateVersionInfo() {\n        if (typeof BETA === 'undefined') return;\n\n        const versionInfo = BETA.getVersion();\n        const infoEl = document.getElementById('betaVersionInfo');\n\n        if (infoEl) {\n            infoEl.textContent = `Beta v${versionInfo.betaVersion} | ${versionInfo.enabledCount}/${versionInfo.featureCount} características habilitadas`;\n        }\n    }\n\n    /**\n     * Escapa caracteres HTML especiales.\n     */\n    function _escapeHtml(str) {\n        if (!str) return '';\n        const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', \"'\": '&#39;' };\n        return String(str).replace(/[&<>\"']/g, (c) => map[c]);\n    }\n\n    /* ── API Pública ─────────────────────────────────────────– */\n\n    /**\n     * Muestra el panel beta.\n     */\n    function showBetaPanel() {\n        createBetaPanel();\n        const panel = document.getElementById(PANEL_ID);\n        if (panel) {\n            panel.classList.add('active');\n            panel.setAttribute('aria-hidden', 'false');\n        }\n    }\n\n    /**\n     * Oculta el panel beta.\n     */\n    function hideBetaPanel() {\n        const panel = document.getElementById(PANEL_ID);\n        if (panel) {\n            panel.classList.remove('active');\n            panel.setAttribute('aria-hidden', 'true');\n        }\n    }\n\n    /**\n     * Alterna la visibilidad del panel beta.\n     */\n    function toggleBetaPanel() {\n        const panel = document.getElementById(PANEL_ID);\n        if (panel && panel.classList.contains('active')) {\n            hideBetaPanel();\n        } else {\n            showBetaPanel();\n        }\n    }\n\n    /**\n     * Actualiza el panel con cambios de características.\n     */\n    function updatePanel() {\n        _renderFeatures();\n    }\n\n    /* ── Exportación ─────────────────────────────────────────– */\n\n    global.BetaPanel = Object.freeze({\n        showBetaPanel,\n        hideBetaPanel,\n        toggleBetaPanel,\n        updatePanel,\n    });\n\n})(window);\n

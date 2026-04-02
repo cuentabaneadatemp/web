@@ -462,6 +462,14 @@
         if (DOM.themeRandom)    DOM.themeRandom.addEventListener('click', () => applyTheme('random'));
         if (DOM.shareChannel)   DOM.shareChannel.addEventListener('click', shareWhatsAppChannel);
 
+        // Botón de descarga de APK
+        const downloadAPKBtn = document.getElementById('downloadAPKBtn');
+        if (downloadAPKBtn && typeof window.APKDownloadManager !== 'undefined') {
+            downloadAPKBtn.addEventListener('click', () => {
+                window.APKDownloadManager.downloadAPK();
+            });
+        }
+
         // Escuchar cambios de idioma
         if (typeof window !== 'undefined') {
             window.addEventListener('languagechange', () => {
