@@ -1,11 +1,11 @@
 /**
  * sw-register.js — Registro del Service Worker
- * Contactos Anónimos v2.0
+ * Contactos Anónimos v4.0
  *
  * Registra el Service Worker en el navegador cuando está disponible.
  * Se ejecuta de forma no bloqueante después de que la página se haya cargado.
  *
- * @version 1.0
+ * @version 4.0
  */
 
 (function () {
@@ -28,8 +28,8 @@
      * Registra el Service Worker y maneja actualizaciones
      */
     function registerServiceWorker() {
-        navigator.serviceWorker.register('/web/sw.js', {
-            scope: '/web/',
+        navigator.serviceWorker.register('/sw.js', {
+            scope: '/',
         })
             .then((registration) => {
                 console.log('[SW-Register] ✅ Service Worker registrado:', registration);
@@ -66,8 +66,8 @@
             try {
                 new Notification('Contactos Anónimos', {
                     body: 'Nueva versión disponible. Recarga la página para actualizar.',
-                    icon: '/web/src/assets/img/favicon.svg',
-                    badge: '/web/src/assets/img/favicon.svg',
+                    icon: '/src/assets/img/favicon.svg',
+                    badge: '/src/assets/img/favicon.svg',
                     tag: 'ca-update',
                 });
             } catch (_) {

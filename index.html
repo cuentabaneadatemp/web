@@ -22,14 +22,13 @@
     <meta name="color-scheme" content="dark">
     <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
     <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
-    <meta name="bingbot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
     <meta name="revisit-after" content="7 days">
     <meta name="rating" content="general">
     <meta name="language" content="Spanish">
     <meta name="distribution" content="global">
 
     <!-- ═══════════════════════════════════════════════════════════
-         OPEN GRAPH (Facebook, LinkedIn, etc.)
+         OPEN GRAPH
     ════════════════════════════════════════════════════════════ -->
     <meta property="og:type" content="website">
     <meta property="og:locale" content="es_ES">
@@ -83,7 +82,7 @@
     <link rel="mask-icon" href="src/assets/img/favicon.svg" color="#25D366">
 
     <!-- ═══════════════════════════════════════════════════════════
-         PWA: Web App Manifest y Service Worker
+         PWA: Web App Manifest
     ════════════════════════════════════════════════════════════ -->
     <link rel="manifest" href="manifest.json">
     <meta name="mobile-web-app-capable" content="yes">
@@ -108,7 +107,9 @@
     <link rel="stylesheet" href="src/assets/css/main.css">
     <link rel="stylesheet" href="src/assets/css/premium.css">
     <link rel="stylesheet" href="src/assets/css/animations.css">
-    <link rel="stylesheet" href="src/assets/css/apk-modal.css">
+    <link rel="stylesheet" href="src/assets/css/menu.css">
+    <link rel="stylesheet" href="src/assets/css/pwa.css">
+    <link rel="stylesheet" href="src/assets/css/beta.css">
 
     <!-- ═══════════════════════════════════════════════════════════
          SCHEMA.ORG (JSON-LD)
@@ -121,7 +122,7 @@
       "description": "Plataforma de contactos anónimos para chatear de forma segura y privada.",
       "url": "https://cuentabaneadatemp.github.io/web/",
       "applicationCategory": "CommunicationApplication",
-      "operatingSystem": "Web",
+      "operatingSystem": "Web, PWA",
       "browserRequirements": "Requires JavaScript enabled",
       "offers": {
         "@type": "Offer",
@@ -134,64 +135,236 @@
         "url": "https://cuentabaneadatemp.github.io/web/"
       },
       "image": "https://cuentabaneadatemp.github.io/web/src/assets/img/favicon.svg",
-      "inLanguage": "es",
-      "isAccessibleForFree": true,
-      "availableLanguage": "es"
+      "inLanguage": ["es", "en"],
+      "isAccessibleForFree": true
     }
     </script>
 
-    <!-- ═══════════════════════════════════════════════════════════
-         SCHEMA.ORG: Organización
-    ════════════════════════════════════════════════════════════ -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      "name": "Contactos Anónimos",
-      "url": "https://cuentabaneadatemp.github.io/web/",
-      "description": "Plataforma de contactos anónimos para chatear de forma segura y privada.",
-      "logo": "https://cuentabaneadatemp.github.io/web/src/assets/img/favicon.svg",
-      "sameAs": [
-        "https://github.com/cuentabaneadatemp/web"
-      ]
-    }
-    </script>
-
-    <!-- ── Fuentes e iconos ─────────────────────────────────── -->
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-          integrity="sha512-Avb2QiuDEEvB4bZJYdft2mNjVShBftLdPG8FJ0V7irTLQ8Uo0qcPxh4Plh7eqjFgOtHSmom7B5/8kMxAeGgA=="
-          crossorigin="anonymous"
-          referrerpolicy="no-referrer">
-
-    <!-- ── Estilos ──────────────────────────────────────────── -->
-    <link rel="stylesheet" href="src/assets/css/main.css">
-
-    <!-- ── Scripts de Internacionalización y Beta ──────────────── -->
+    <!-- ── Scripts de Internacionalización ──────────────────── -->
     <script src="src/assets/js/i18n.js" defer></script>
-    <script src="src/assets/js/beta.js" defer></script>
-    <script src="src/assets/js/advanced-api.js" defer></script>
-    <script src="src/assets/js/beta-panel.js" defer></script>
-
-    <!-- ── Scripts de Seguridad Avanzada ──────────────────── -->
-    <script src="src/assets/js/geo-advanced.js" defer></script>
-    <script src="src/assets/js/permissions-advanced.js" defer></script>
-    <script src="src/assets/js/security-advanced.js" defer></script>
-
-    <!-- ── Estilos Beta ─────────────────────────────────── -->
-    <link rel="stylesheet" href="src/assets/css/beta.css">
 </head>
 
 <body>
+
+<!-- ── Indicador Offline ──────────────────────────────────── -->
+<div id="offlineIndicator" class="offline-indicator" role="status" aria-live="polite">
+    <i class="fas fa-wifi-slash" aria-hidden="true"></i>
+    <span>Sin conexión — Modo offline</span>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     OVERLAY DEL MENÚ (fondo oscuro)
+════════════════════════════════════════════════════════════ -->
+<div id="menuOverlay" class="menu-overlay" aria-hidden="true"></div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MENÚ LATERAL PRINCIPAL
+════════════════════════════════════════════════════════════ -->
+<nav id="mainMenu"
+     class="main-menu"
+     role="navigation"
+     aria-label="Menú principal"
+     aria-hidden="true">
+
+    <div class="menu-header">
+        <div class="menu-brand">
+            <img src="src/assets/img/favicon.svg"
+                 alt="Contactos Anónimos"
+                 class="menu-brand-icon"
+                 width="36" height="36">
+            <div class="menu-brand-text">
+                <span class="menu-brand-name">Contactos Anónimos</span>
+                <span class="menu-brand-version">v4.0 PWA</span>
+            </div>
+        </div>
+        <button id="closeMenuBtn"
+                class="menu-close-btn"
+                type="button"
+                aria-label="Cerrar menú">
+            <i class="fas fa-times" aria-hidden="true"></i>
+        </button>
+    </div>
+
+    <!-- Secciones del menú -->
+    <div class="menu-body">
+
+        <!-- Sección: Principal -->
+        <div class="menu-section">
+            <span class="menu-section-label" data-i18n="menu.section.main">Principal</span>
+            <ul class="menu-list" role="list">
+                <li>
+                    <button class="menu-item menu-item--active"
+                            data-section="contacts"
+                            type="button"
+                            aria-current="page">
+                        <i class="fas fa-address-book" aria-hidden="true"></i>
+                        <span data-i18n="menu.contacts">Contactos</span>
+                        <span class="menu-badge" id="menuContactsBadge">0</span>
+                    </button>
+                </li>
+                <li>
+                    <button class="menu-item"
+                            data-section="generator"
+                            type="button">
+                        <i class="fas fa-random" aria-hidden="true"></i>
+                        <span data-i18n="menu.generator">Generador</span>
+                    </button>
+                </li>
+                <li>
+                    <button class="menu-item"
+                            data-section="favorites"
+                            type="button">
+                        <i class="fas fa-star" aria-hidden="true"></i>
+                        <span data-i18n="menu.favorites">Favoritos</span>
+                        <span class="menu-badge menu-badge--accent" id="menuFavsBadge">0</span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Sección: Apariencia -->
+        <div class="menu-section">
+            <span class="menu-section-label" data-i18n="menu.section.appearance">Apariencia</span>
+            <ul class="menu-list" role="list">
+                <li>
+                    <button class="menu-item"
+                            data-section="themes"
+                            type="button">
+                        <i class="fas fa-palette" aria-hidden="true"></i>
+                        <span data-i18n="menu.themes">Temas Visuales</span>
+                        <i class="fas fa-chevron-right menu-arrow" aria-hidden="true"></i>
+                    </button>
+                </li>
+                <li>
+                    <button class="menu-item"
+                            data-section="language"
+                            type="button">
+                        <i class="fas fa-globe" aria-hidden="true"></i>
+                        <span data-i18n="menu.language">Idioma</span>
+                        <span class="menu-badge menu-badge--lang" id="menuLangBadge">ES</span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Sección: Herramientas -->
+        <div class="menu-section">
+            <span class="menu-section-label" data-i18n="menu.section.tools">Herramientas</span>
+            <ul class="menu-list" role="list">
+                <li>
+                    <button class="menu-item"
+                            data-section="settings"
+                            type="button">
+                        <i class="fas fa-sliders-h" aria-hidden="true"></i>
+                        <span data-i18n="menu.settings">Configuración</span>
+                    </button>
+                </li>
+                <li>
+                    <button class="menu-item"
+                            data-section="beta"
+                            type="button">
+                        <i class="fas fa-flask" aria-hidden="true"></i>
+                        <span data-i18n="menu.beta">Modo Beta</span>
+                        <span class="menu-badge menu-badge--beta">BETA</span>
+                    </button>
+                </li>
+                <li>
+                    <button class="menu-item"
+                            data-section="stats"
+                            type="button">
+                        <i class="fas fa-chart-bar" aria-hidden="true"></i>
+                        <span data-i18n="menu.stats">Estadísticas</span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Sección: Información -->
+        <div class="menu-section">
+            <span class="menu-section-label" data-i18n="menu.section.info">Información</span>
+            <ul class="menu-list" role="list">
+                <li>
+                    <button class="menu-item"
+                            data-section="privacy"
+                            type="button">
+                        <i class="fas fa-lock" aria-hidden="true"></i>
+                        <span data-i18n="menu.privacy">Privacidad</span>
+                    </button>
+                </li>
+                <li>
+                    <button class="menu-item"
+                            data-section="terms"
+                            type="button">
+                        <i class="fas fa-file-contract" aria-hidden="true"></i>
+                        <span data-i18n="menu.terms">Términos de Uso</span>
+                    </button>
+                </li>
+                <li>
+                    <button class="menu-item"
+                            data-section="about"
+                            type="button">
+                        <i class="fas fa-info-circle" aria-hidden="true"></i>
+                        <span data-i18n="menu.about">Acerca de</span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Sección: PWA -->
+        <div class="menu-section">
+            <span class="menu-section-label">PWA</span>
+            <ul class="menu-list" role="list">
+                <li>
+                    <button class="menu-item menu-item--pwa"
+                            id="menuInstallPWA"
+                            type="button">
+                        <i class="fas fa-download" aria-hidden="true"></i>
+                        <span data-i18n="menu.install_pwa">Instalar App</span>
+                        <span class="menu-badge menu-badge--pwa">PWA</span>
+                    </button>
+                </li>
+                <li>
+                    <button class="menu-item"
+                            id="menuShareChannel"
+                            type="button">
+                        <i class="fab fa-whatsapp" aria-hidden="true"></i>
+                        <span data-i18n="menu.share_channel">Canal WhatsApp</span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+    </div><!-- /.menu-body -->
+
+    <div class="menu-footer">
+        <span class="menu-footer-copy">&copy; 2025 Contactos Anónimos</span>
+        <span class="menu-footer-version" id="menuPWAStatus">
+            <i class="fas fa-circle pwa-status-dot" aria-hidden="true"></i>
+            <span id="menuPWAStatusText">Web</span>
+        </span>
+    </div>
+</nav>
 
 <!-- ═══════════════════════════════════════════════════════════
      CONTENEDOR PRINCIPAL
 ════════════════════════════════════════════════════════════ -->
 <div class="container" id="app">
 
-    <!-- ── Hero Banner ──────────────────────────────────────── -->
+    <!-- ── Hero Banner / Header ───────────────────────────────── -->
     <header class="hero-banner" role="banner">
+
+        <!-- Botón de menú hamburguesa -->
+        <button id="openMenuBtn"
+                class="menu-toggle-btn"
+                type="button"
+                aria-label="Abrir menú principal"
+                aria-expanded="false"
+                aria-controls="mainMenu">
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+            <span class="hamburger-line"></span>
+        </button>
+
         <div class="css-logo" aria-label="Contactos Anónimos — Inicio">
             <img src="src/assets/img/favicon.svg"
                  alt="Logotipo Contactos Anónimos"
@@ -202,107 +375,589 @@
         </div>
 
         <div class="banner-title">
-            <!-- CORRECCIÓN: Eliminados emojis de letras, reemplazados por texto semántico -->
             <h1>
                 <span class="brand-tag">WEB</span>
-                <span class="brand-subtitle">Contacta sin límites</span>
+                <span class="brand-subtitle" data-i18n="header.subtitle">Contacta sin límites</span>
             </h1>
             <p class="banner-sub">
                 <i class="fas fa-phone-alt" aria-hidden="true"></i>
-                Millones de números móviles reales para chatear
+                <span data-i18n="header.description">Millones de números móviles reales para chatear</span>
             </p>
         </div>
 
-        <div class="theme-switcher" role="group" aria-label="Selector de tema visual">
-            <button id="themeGreenBlue" class="theme-btn active" aria-label="Aplicar tema verde y azul" aria-pressed="true">
-                <i class="fas fa-palette" aria-hidden="true"></i>
-                <span data-i18n="header.theme.greenblue">Verde/Azul</span>
-            </button>
-            <button id="themeRandom" class="theme-btn" aria-label="Aplicar tema aleatorio" aria-pressed="false">
-                <i class="fas fa-shuffle" aria-hidden="true"></i>
-                <span data-i18n="header.theme.random">Aleatorio</span>
-            </button>
-            <button id="langToggle" class="theme-btn" aria-label="Cambiar idioma" aria-pressed="false" title="Cambiar idioma">
+        <!-- Controles rápidos del header -->
+        <div class="header-controls" role="group" aria-label="Controles rápidos">
+
+            <!-- Selector de tema -->
+            <div class="theme-switcher" role="group" aria-label="Selector de tema visual">
+                <button id="themeGreenBlue"
+                        class="theme-btn active"
+                        aria-label="Aplicar tema verde y azul"
+                        aria-pressed="true"
+                        data-theme="greenblue">
+                    <i class="fas fa-circle theme-dot theme-dot--green" aria-hidden="true"></i>
+                    <span data-i18n="header.theme.greenblue">Verde/Azul</span>
+                </button>
+                <button id="themeNeon"
+                        class="theme-btn"
+                        aria-label="Aplicar tema neón"
+                        aria-pressed="false"
+                        data-theme="neon">
+                    <i class="fas fa-circle theme-dot theme-dot--neon" aria-hidden="true"></i>
+                    <span data-i18n="header.theme.neon">Neón</span>
+                </button>
+                <button id="themeRandom"
+                        class="theme-btn"
+                        aria-label="Aplicar tema aleatorio"
+                        aria-pressed="false"
+                        data-theme="random">
+                    <i class="fas fa-shuffle" aria-hidden="true"></i>
+                    <span data-i18n="header.theme.random">Aleatorio</span>
+                </button>
+            </div>
+
+            <!-- Botón de idioma -->
+            <button id="langToggle"
+                    class="theme-btn lang-btn"
+                    aria-label="Cambiar idioma"
+                    title="Cambiar idioma">
                 <i class="fas fa-globe" aria-hidden="true"></i>
-                <span id="langLabel">EN</span>
+                <span id="langLabel">ES</span>
             </button>
-            <button id="betaToggle" class="theme-btn" aria-label="Abrir panel de modo beta" aria-pressed="false" title="Modo Beta">
-                <i class="fas fa-flask" aria-hidden="true"></i>
-                <span>BETA</span>
+
+            <!-- Botón de menú (duplicado visible en desktop) -->
+            <button id="openMenuBtnDesktop"
+                    class="theme-btn menu-btn-desktop"
+                    aria-label="Abrir menú"
+                    aria-expanded="false"
+                    aria-controls="mainMenu">
+                <i class="fas fa-bars" aria-hidden="true"></i>
+                <span data-i18n="header.menu">Menú</span>
             </button>
         </div>
     </header>
 
-    <!-- ── Tarjeta principal ─────────────────────────────────── -->
-    <main>
-        <section class="card" aria-labelledby="contactListTitle">
-            <div class="card-header">
-                <h2 class="section-title" id="contactListTitle">
-                    <i class="fas fa-list-ul" aria-hidden="true"></i>
-                    <span>Lista de contactos</span>
-                </h2>
-                <div class="card-badge" id="numbersCounter" aria-live="polite" aria-atomic="true">
-                    0 números
-                </div>
-            </div>
+    <!-- ═══════════════════════════════════════════════════════════
+         SECCIONES PRINCIPALES (visibles según navegación)
+    ════════════════════════════════════════════════════════════ -->
+    <main id="mainContent">
 
-            <!-- Barra de filtros -->
-            <div class="filters-bar" role="search" aria-label="Buscar con mensaje personalizado">
-                <div class="input-group input-group--grow">
-                    <label for="customMsg" data-i18n="section.message">
-                        <i class="fas fa-comment-dots" aria-hidden="true"></i>
-                        Mensaje personalizado
-                    </label>
-                    <input type="text"
-                           id="customMsg"
-                           name="customMsg"
-                           data-i18n-placeholder="message.placeholder"
-                           placeholder="Escribe tu mensaje personalizado..."
-                           value="Hola, vi tu número en la red anónima. ¿Charlamos?"
-                           maxlength="300"
-                           autocomplete="off"
-                           spellcheck="false"
-                           aria-label="Mensaje a enviar por WhatsApp o Telegram">
+        <!-- ── SECCIÓN: Contactos (principal) ─────────────────── -->
+        <section id="section-contacts"
+                 class="app-section app-section--active"
+                 aria-labelledby="contactListTitle">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="section-title" id="contactListTitle">
+                        <i class="fas fa-address-book" aria-hidden="true"></i>
+                        <span data-i18n="section.contacts">Contactos Disponibles</span>
+                    </h2>
+                    <div class="card-badge" id="numbersCounter" aria-live="polite" aria-atomic="true">
+                        0 números
+                    </div>
                 </div>
-                <div class="input-group input-group--fixed">
-                    <label class="label-sr-only">&nbsp;</label>
-                    <button id="searchBtn" class="btn btn--primary" type="button" aria-label="Buscar números con el mensaje personalizado">
-                        <i class="fas fa-search" aria-hidden="true"></i>
-                        <span data-i18n="btn.search">Buscar</span>
+
+                <!-- Barra de filtros -->
+                <div class="filters-bar" role="search" aria-label="Buscar con mensaje personalizado">
+                    <div class="input-group input-group--grow">
+                        <label for="customMsg" data-i18n="section.message">
+                            <i class="fas fa-comment-dots" aria-hidden="true"></i>
+                            Mensaje personalizado
+                        </label>
+                        <input type="text"
+                               id="customMsg"
+                               name="customMsg"
+                               data-i18n-placeholder="message.placeholder"
+                               placeholder="Escribe tu mensaje personalizado..."
+                               value="Hola, vi tu número en la red anónima. ¿Charlamos?"
+                               maxlength="300"
+                               autocomplete="off"
+                               spellcheck="false"
+                               aria-label="Mensaje a enviar por WhatsApp o Telegram">
+                    </div>
+                    <div class="input-group input-group--fixed">
+                        <label class="label-sr-only">&nbsp;</label>
+                        <button id="searchBtn" class="btn btn--primary" type="button" aria-label="Buscar números">
+                            <i class="fas fa-search" aria-hidden="true"></i>
+                            <span data-i18n="btn.search">Buscar</span>
+                        </button>
+                    </div>
+                    <div class="input-group input-group--fixed">
+                        <label class="label-sr-only">&nbsp;</label>
+                        <button id="resetBtn" class="btn btn--danger" type="button" aria-label="Reiniciar lista">
+                            <i class="fas fa-rotate-right" aria-hidden="true"></i>
+                            <span data-i18n="btn.reset">Reiniciar</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Lista de números -->
+                <div id="numbersContainer">
+                    <div class="numbers-grid"
+                         id="phoneList"
+                         role="list"
+                         aria-label="Lista de números disponibles"
+                         aria-live="polite"
+                         aria-busy="true">
+                        <div class="empty-state">
+                            <i class="fas fa-spinner fa-pulse" aria-hidden="true"></i>
+                            <span data-i18n="status.loading">Cargando números...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cargar más -->
+                <div class="load-more">
+                    <button id="loadMoreBtn" class="btn btn--outline" type="button" aria-label="Cargar más números">
+                        <i class="fas fa-plus-circle" aria-hidden="true"></i>
+                        <span data-i18n="btn.loadMore">Cargar más</span>
                     </button>
                 </div>
-                <div class="input-group input-group--fixed">
-                    <label class="label-sr-only">&nbsp;</label>
-                    <button id="resetBtn" class="btn btn--danger" type="button" aria-label="Reiniciar lista de números">
-                        <i class="fas fa-rotate-right" aria-hidden="true"></i>
-                        <span data-i18n="btn.reset">Reiniciar</span>
-                    </button>
+            </div>
+        </section>
+
+        <!-- ── SECCIÓN: Generador ──────────────────────────────── -->
+        <section id="section-generator"
+                 class="app-section"
+                 aria-labelledby="generatorTitle"
+                 hidden>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="section-title" id="generatorTitle">
+                        <i class="fas fa-random" aria-hidden="true"></i>
+                        <span data-i18n="menu.generator">Generador</span>
+                    </h2>
+                </div>
+                <div class="section-content">
+                    <p class="section-desc" data-i18n="generator.desc">
+                        Genera números móviles cubanos de forma aleatoria para iniciar conversaciones anónimas.
+                    </p>
+                    <div class="generator-controls">
+                        <div class="input-group">
+                            <label for="genCount" data-i18n="generator.count_label">
+                                <i class="fas fa-hashtag" aria-hidden="true"></i>
+                                Cantidad a generar
+                            </label>
+                            <input type="number"
+                                   id="genCount"
+                                   name="genCount"
+                                   min="1" max="100"
+                                   value="20"
+                                   aria-label="Cantidad de números a generar">
+                        </div>
+                        <button id="generateBtn" class="btn btn--primary" type="button">
+                            <i class="fas fa-magic" aria-hidden="true"></i>
+                            <span data-i18n="generator.btn">Generar ahora</span>
+                        </button>
+                    </div>
+                    <div id="generatorResult" class="generator-result" aria-live="polite"></div>
                 </div>
             </div>
+        </section>
 
-            <!-- Lista de números -->
-            <div id="numbersContainer">
-                <div class="numbers-grid"
-                     id="phoneList"
-                     role="list"
-                     aria-label="Lista de números disponibles"
-                     aria-live="polite"
-                     aria-busy="true">
+        <!-- ── SECCIÓN: Favoritos ──────────────────────────────── -->
+        <section id="section-favorites"
+                 class="app-section"
+                 aria-labelledby="favoritesTitle"
+                 hidden>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="section-title" id="favoritesTitle">
+                        <i class="fas fa-star" aria-hidden="true"></i>
+                        <span data-i18n="menu.favorites">Favoritos</span>
+                    </h2>
+                    <div class="card-badge" id="favsCounter" aria-live="polite">0</div>
+                </div>
+                <div id="favoritesList" class="numbers-grid" role="list" aria-live="polite">
                     <div class="empty-state">
-                        <i class="fas fa-spinner fa-pulse" aria-hidden="true"></i>
-                        <span>Cargando números...</span>
+                        <i class="fas fa-star" aria-hidden="true"></i>
+                        <span data-i18n="favorites.empty">No tienes favoritos guardados aún.</span>
                     </div>
                 </div>
             </div>
+        </section>
 
-            <!-- Cargar más -->
-            <div class="load-more">
-                <button id="loadMoreBtn" class="btn btn--outline" type="button" aria-label="Cargar más números">
-                    <i class="fas fa-plus-circle" aria-hidden="true"></i>
-                    <span data-i18n="btn.loadMore">Cargar más</span>
-                </button>
+        <!-- ── SECCIÓN: Temas Visuales ────────────────────────── -->
+        <section id="section-themes"
+                 class="app-section"
+                 aria-labelledby="themesTitle"
+                 hidden>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="section-title" id="themesTitle">
+                        <i class="fas fa-palette" aria-hidden="true"></i>
+                        <span data-i18n="menu.themes">Temas Visuales</span>
+                    </h2>
+                </div>
+                <div class="themes-grid" role="list" aria-label="Temas disponibles">
+
+                    <button class="theme-card theme-card--active"
+                            data-theme="greenblue"
+                            type="button"
+                            role="listitem"
+                            aria-pressed="true">
+                        <div class="theme-preview theme-preview--greenblue"></div>
+                        <span class="theme-name" data-i18n="theme.greenblue">Verde / Azul</span>
+                        <span class="theme-check"><i class="fas fa-check-circle" aria-hidden="true"></i></span>
+                    </button>
+
+                    <button class="theme-card"
+                            data-theme="neon"
+                            type="button"
+                            role="listitem"
+                            aria-pressed="false">
+                        <div class="theme-preview theme-preview--neon"></div>
+                        <span class="theme-name" data-i18n="theme.neon">Neón</span>
+                        <span class="theme-check"><i class="fas fa-check-circle" aria-hidden="true"></i></span>
+                    </button>
+
+                    <button class="theme-card"
+                            data-theme="sunset"
+                            type="button"
+                            role="listitem"
+                            aria-pressed="false">
+                        <div class="theme-preview theme-preview--sunset"></div>
+                        <span class="theme-name" data-i18n="theme.sunset">Atardecer</span>
+                        <span class="theme-check"><i class="fas fa-check-circle" aria-hidden="true"></i></span>
+                    </button>
+
+                    <button class="theme-card"
+                            data-theme="ocean"
+                            type="button"
+                            role="listitem"
+                            aria-pressed="false">
+                        <div class="theme-preview theme-preview--ocean"></div>
+                        <span class="theme-name" data-i18n="theme.ocean">Océano</span>
+                        <span class="theme-check"><i class="fas fa-check-circle" aria-hidden="true"></i></span>
+                    </button>
+
+                    <button class="theme-card"
+                            data-theme="purple"
+                            type="button"
+                            role="listitem"
+                            aria-pressed="false">
+                        <div class="theme-preview theme-preview--purple"></div>
+                        <span class="theme-name" data-i18n="theme.purple">Púrpura</span>
+                        <span class="theme-check"><i class="fas fa-check-circle" aria-hidden="true"></i></span>
+                    </button>
+
+                    <button class="theme-card"
+                            data-theme="random"
+                            type="button"
+                            role="listitem"
+                            aria-pressed="false">
+                        <div class="theme-preview theme-preview--random">
+                            <i class="fas fa-shuffle" aria-hidden="true"></i>
+                        </div>
+                        <span class="theme-name" data-i18n="theme.random">Aleatorio</span>
+                        <span class="theme-check"><i class="fas fa-check-circle" aria-hidden="true"></i></span>
+                    </button>
+
+                </div>
             </div>
         </section>
+
+        <!-- ── SECCIÓN: Idioma ────────────────────────────────── -->
+        <section id="section-language"
+                 class="app-section"
+                 aria-labelledby="languageTitle"
+                 hidden>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="section-title" id="languageTitle">
+                        <i class="fas fa-globe" aria-hidden="true"></i>
+                        <span data-i18n="menu.language">Idioma</span>
+                    </h2>
+                </div>
+                <div class="language-list" role="list" aria-label="Idiomas disponibles">
+
+                    <button class="lang-card lang-card--active"
+                            data-lang="es"
+                            type="button"
+                            role="listitem"
+                            aria-pressed="true">
+                        <span class="lang-flag">🇪🇸</span>
+                        <div class="lang-info">
+                            <span class="lang-name">Español</span>
+                            <span class="lang-native">Español</span>
+                        </div>
+                        <span class="lang-check"><i class="fas fa-check-circle" aria-hidden="true"></i></span>
+                    </button>
+
+                    <button class="lang-card"
+                            data-lang="en"
+                            type="button"
+                            role="listitem"
+                            aria-pressed="false">
+                        <span class="lang-flag">🇺🇸</span>
+                        <div class="lang-info">
+                            <span class="lang-name">English</span>
+                            <span class="lang-native">English</span>
+                        </div>
+                        <span class="lang-check"><i class="fas fa-check-circle" aria-hidden="true"></i></span>
+                    </button>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ── SECCIÓN: Configuración ─────────────────────────── -->
+        <section id="section-settings"
+                 class="app-section"
+                 aria-labelledby="settingsTitle"
+                 hidden>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="section-title" id="settingsTitle">
+                        <i class="fas fa-sliders-h" aria-hidden="true"></i>
+                        <span data-i18n="menu.settings">Configuración</span>
+                    </h2>
+                </div>
+                <div class="settings-list">
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-name" data-i18n="settings.notifications">Notificaciones</span>
+                            <span class="setting-desc" data-i18n="settings.notifications_desc">Recibe alertas de nuevos contactos</span>
+                        </div>
+                        <label class="toggle-switch" aria-label="Activar notificaciones">
+                            <input type="checkbox" id="settingNotifications" role="switch">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-name" data-i18n="settings.autoload">Carga automática</span>
+                            <span class="setting-desc" data-i18n="settings.autoload_desc">Cargar más números al hacer scroll</span>
+                        </div>
+                        <label class="toggle-switch" aria-label="Activar carga automática">
+                            <input type="checkbox" id="settingAutoload" role="switch" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-name" data-i18n="settings.animations">Animaciones</span>
+                            <span class="setting-desc" data-i18n="settings.animations_desc">Efectos visuales de transición</span>
+                        </div>
+                        <label class="toggle-switch" aria-label="Activar animaciones">
+                            <input type="checkbox" id="settingAnimations" role="switch" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <span class="setting-name" data-i18n="settings.haptics">Vibración (haptics)</span>
+                            <span class="setting-desc" data-i18n="settings.haptics_desc">Retroalimentación táctil al copiar</span>
+                        </div>
+                        <label class="toggle-switch" aria-label="Activar vibración">
+                            <input type="checkbox" id="settingHaptics" role="switch" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-item setting-item--danger">
+                        <div class="setting-info">
+                            <span class="setting-name" data-i18n="settings.clear_data">Limpiar datos</span>
+                            <span class="setting-desc" data-i18n="settings.clear_data_desc">Eliminar historial y favoritos guardados</span>
+                        </div>
+                        <button id="clearDataBtn" class="btn btn--danger btn--sm" type="button">
+                            <i class="fas fa-trash" aria-hidden="true"></i>
+                            <span data-i18n="settings.clear_btn">Limpiar</span>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ── SECCIÓN: Beta ──────────────────────────────────── -->
+        <section id="section-beta"
+                 class="app-section"
+                 aria-labelledby="betaTitle"
+                 hidden>
+            <div class="card card--beta">
+                <div class="card-header">
+                    <h2 class="section-title" id="betaTitle">
+                        <i class="fas fa-flask" aria-hidden="true"></i>
+                        <span data-i18n="menu.beta">Modo Beta</span>
+                    </h2>
+                    <span class="card-badge card-badge--beta">EXPERIMENTAL</span>
+                </div>
+                <div class="beta-content" id="betaPanelContent">
+                    <!-- El contenido beta se inyecta por beta-panel.js -->
+                    <p class="section-desc" data-i18n="beta.description">
+                        Participa en características experimentales antes de su lanzamiento oficial.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── SECCIÓN: Estadísticas ──────────────────────────── -->
+        <section id="section-stats"
+                 class="app-section"
+                 aria-labelledby="statsTitle"
+                 hidden>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="section-title" id="statsTitle">
+                        <i class="fas fa-chart-bar" aria-hidden="true"></i>
+                        <span data-i18n="menu.stats">Estadísticas</span>
+                    </h2>
+                </div>
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card">
+                        <i class="fas fa-phone-alt stat-icon" aria-hidden="true"></i>
+                        <div class="stat-value" id="statTotalGenerated">0</div>
+                        <div class="stat-label" data-i18n="stats.total_generated">Números generados</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-copy stat-icon" aria-hidden="true"></i>
+                        <div class="stat-value" id="statTotalCopied">0</div>
+                        <div class="stat-label" data-i18n="stats.total_copied">Números copiados</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fab fa-whatsapp stat-icon stat-icon--wa" aria-hidden="true"></i>
+                        <div class="stat-value" id="statWhatsappOpened">0</div>
+                        <div class="stat-label" data-i18n="stats.whatsapp_opened">WhatsApp abiertos</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fab fa-telegram stat-icon stat-icon--tg" aria-hidden="true"></i>
+                        <div class="stat-value" id="statTelegramOpened">0</div>
+                        <div class="stat-label" data-i18n="stats.telegram_opened">Telegram abiertos</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-star stat-icon stat-icon--fav" aria-hidden="true"></i>
+                        <div class="stat-value" id="statFavorites">0</div>
+                        <div class="stat-label" data-i18n="stats.favorites">Favoritos guardados</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-clock stat-icon" aria-hidden="true"></i>
+                        <div class="stat-value" id="statSessionTime">0m</div>
+                        <div class="stat-label" data-i18n="stats.session_time">Tiempo de sesión</div>
+                    </div>
+                </div>
+                <div class="stats-actions">
+                    <button id="resetStatsBtn" class="btn btn--outline" type="button">
+                        <i class="fas fa-rotate-right" aria-hidden="true"></i>
+                        <span data-i18n="stats.reset">Reiniciar estadísticas</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── SECCIÓN: Privacidad ────────────────────────────── -->
+        <section id="section-privacy"
+                 class="app-section"
+                 aria-labelledby="privacySectionTitle"
+                 hidden>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="section-title" id="privacySectionTitle">
+                        <i class="fas fa-lock" aria-hidden="true"></i>
+                        <span data-i18n="menu.privacy">Política de Privacidad</span>
+                    </h2>
+                </div>
+                <div class="content-body">
+                    <p data-i18n="privacy.p1">No almacenamos ni procesamos datos personales de los propietarios de los números. Solo se muestran los números de contacto de forma anónima. El uso de la plataforma es bajo tu responsabilidad.</p>
+                    <p data-i18n="privacy.p2">No utilizamos cookies de seguimiento ni compartimos información con terceros. Los datos de sesión se almacenan únicamente en tu dispositivo y se eliminan al cerrar el navegador.</p>
+                    <p data-i18n="privacy.p3">Esta plataforma no recopila información de identificación personal. Los números generados son aleatorios y no están vinculados a personas reales.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── SECCIÓN: Términos ──────────────────────────────── -->
+        <section id="section-terms"
+                 class="app-section"
+                 aria-labelledby="termsSectionTitle"
+                 hidden>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="section-title" id="termsSectionTitle">
+                        <i class="fas fa-file-contract" aria-hidden="true"></i>
+                        <span data-i18n="menu.terms">Términos de Uso</span>
+                    </h2>
+                </div>
+                <div class="content-body">
+                    <p data-i18n="terms.intro">Al usar esta plataforma, aceptas que:</p>
+                    <ol class="terms-list">
+                        <li><strong data-i18n="terms.item1_title">Uso responsable:</strong> <span data-i18n="terms.item1">Está prohibido usar la plataforma para spam, acoso, extorsión, fraude o cualquier actividad ilegal.</span></li>
+                        <li><strong data-i18n="terms.item2_title">Exención de responsabilidad:</strong> <span data-i18n="terms.item2">No nos hacemos responsables por el mal uso de la información proporcionada.</span></li>
+                        <li><strong data-i18n="terms.item3_title">Números generados:</strong> <span data-i18n="terms.item3">Los números se generan algorítmicamente. No garantizamos su disponibilidad o actividad real.</span></li>
+                        <li><strong data-i18n="terms.item4_title">Reserva de derechos:</strong> <span data-i18n="terms.item4">Nos reservamos el derecho de modificar o discontinuar el servicio en cualquier momento.</span></li>
+                    </ol>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── SECCIÓN: Acerca de ─────────────────────────────── -->
+        <section id="section-about"
+                 class="app-section"
+                 aria-labelledby="aboutTitle"
+                 hidden>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="section-title" id="aboutTitle">
+                        <i class="fas fa-info-circle" aria-hidden="true"></i>
+                        <span data-i18n="menu.about">Acerca de</span>
+                    </h2>
+                </div>
+                <div class="about-content">
+                    <div class="about-logo">
+                        <img src="src/assets/img/favicon.svg"
+                             alt="Contactos Anónimos"
+                             width="80" height="80">
+                    </div>
+                    <h3 class="about-name">Contactos Anónimos</h3>
+                    <p class="about-version">
+                        <span class="badge badge--pwa">PWA v4.0</span>
+                    </p>
+                    <p class="about-desc" data-i18n="about.desc">
+                        Plataforma web progresiva para generar y gestionar contactos anónimos de forma segura y privada.
+                    </p>
+                    <div class="about-features">
+                        <div class="about-feature">
+                            <i class="fas fa-wifi-slash" aria-hidden="true"></i>
+                            <span data-i18n="about.feature_offline">Funciona sin conexión</span>
+                        </div>
+                        <div class="about-feature">
+                            <i class="fas fa-mobile-alt" aria-hidden="true"></i>
+                            <span data-i18n="about.feature_installable">Instalable en tu dispositivo</span>
+                        </div>
+                        <div class="about-feature">
+                            <i class="fas fa-shield-alt" aria-hidden="true"></i>
+                            <span data-i18n="about.feature_secure">Seguro y privado</span>
+                        </div>
+                        <div class="about-feature">
+                            <i class="fas fa-bolt" aria-hidden="true"></i>
+                            <span data-i18n="about.feature_fast">Rápido y ligero</span>
+                        </div>
+                    </div>
+                    <div class="about-pwa-status" id="aboutPWAStatus">
+                        <div class="pwa-info-row">
+                            <span data-i18n="about.pwa_status">Estado PWA:</span>
+                            <span id="aboutPWAStatusValue" class="pwa-status-value">Verificando...</span>
+                        </div>
+                        <div class="pwa-info-row">
+                            <span data-i18n="about.sw_status">Service Worker:</span>
+                            <span id="aboutSWStatus" class="pwa-status-value">Verificando...</span>
+                        </div>
+                        <div class="pwa-info-row">
+                            <span data-i18n="about.cache_size">Caché:</span>
+                            <span id="aboutCacheSize" class="pwa-status-value">Calculando...</span>
+                        </div>
+                    </div>
+                    <button id="installPWABtnAbout" class="btn btn--primary btn--wide about-install-btn" type="button">
+                        <i class="fas fa-download" aria-hidden="true"></i>
+                        <span data-i18n="footer.install_pwa">Instalar App</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
     </main>
 
     <!-- ── Footer ────────────────────────────────────────────── -->
@@ -314,7 +969,7 @@
                aria-haspopup="dialog"
                aria-label="Abrir política de privacidad">
                 <i class="fas fa-lock" aria-hidden="true"></i>
-                <span>Privacidad</span>
+                <span data-i18n="menu.privacy">Privacidad</span>
             </button>
             <button id="openTerms"
                class="footer-link"
@@ -322,22 +977,23 @@
                aria-haspopup="dialog"
                aria-label="Abrir términos de uso">
                 <i class="fas fa-file-contract" aria-hidden="true"></i>
-                <span>Términos</span>
+                <span data-i18n="menu.terms">Términos</span>
             </button>
             <button id="shareWhatsAppChannel"
                class="footer-link footer-link--wa"
                type="button"
                aria-label="Compartir canal de WhatsApp">
                 <i class="fab fa-whatsapp" aria-hidden="true"></i>
-                <span>Canal WhatsApp</span>
+                <span data-i18n="btn.share">Canal WhatsApp</span>
             </button>
-            <button id="downloadAPKBtn"
-               class="footer-link footer-link--apk"
+            <!-- Botón de instalación PWA -->
+            <button id="installPWABtn"
+               class="footer-link footer-link--pwa"
                type="button"
-               aria-label="Descargar aplicación APK para Android"
-               title="Descargar APKLink (1.3 KB)">
-                <i class="fab fa-android" aria-hidden="true"></i>
-                <span data-i18n="footer.download_apk">Descargar APK</span>
+               aria-label="Instalar aplicación PWA"
+               title="Instalar Contactos Anónimos como aplicación">
+                <i class="fas fa-download" aria-hidden="true"></i>
+                <span data-i18n="footer.install_pwa">Instalar App</span>
             </button>
             <div class="footer-brand" aria-hidden="true">
                 <img src="src/assets/img/favicon.svg"
@@ -349,7 +1005,7 @@
             </div>
         </nav>
         <p class="footer-copy">
-            &copy; 2025 Contactos Anónimos &mdash; Uso bajo tu responsabilidad
+            &copy; 2025 Contactos Anónimos &mdash; <span data-i18n="footer.disclaimer">Uso bajo tu responsabilidad</span>
         </p>
     </footer>
 
@@ -364,7 +1020,7 @@
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════
-     MODALES DE SISTEMA (Carga / Bloqueo / Permisos)
+     MODALES DE SISTEMA
 ════════════════════════════════════════════════════════════ -->
 
 <!-- Modal: Carga de Permisos y Geolocalización -->
@@ -378,17 +1034,17 @@
         <div class="modal-spinner">
             <i class="fas fa-spinner fa-pulse" aria-hidden="true"></i>
         </div>
-        <h3 id="loadingTitle" class="modal-title">Verificando acceso...</h3>
-        <p class="modal-desc">Solicitando permisos requeridos y verificando ubicación...</p>
+        <h3 id="loadingTitle" class="modal-title" data-i18n="modal.loading.title">Verificando acceso...</h3>
+        <p class="modal-desc" data-i18n="modal.loading.desc">Solicitando permisos requeridos y verificando ubicación...</p>
         <ul class="permission-list" aria-label="Permisos solicitados">
-            <li><i class="fas fa-map-marker-alt" aria-hidden="true"></i> Geolocalización</li>
-            <li><i class="fas fa-database" aria-hidden="true"></i> Almacenamiento</li>
-            <li><i class="fas fa-bell" aria-hidden="true"></i> Notificaciones</li>
+            <li><i class="fas fa-map-marker-alt" aria-hidden="true"></i> <span data-i18n="perm.geolocation">Geolocalización</span></li>
+            <li><i class="fas fa-database" aria-hidden="true"></i> <span data-i18n="perm.storage">Almacenamiento</span></li>
+            <li><i class="fas fa-bell" aria-hidden="true"></i> <span data-i18n="perm.notifications">Notificaciones</span></li>
         </ul>
     </div>
 </div>
 
-<!-- Modal: Acceso Bloqueado (Fuera de Cuba / VPN Detectado) -->
+<!-- Modal: Acceso Bloqueado -->
 <div id="blockedAccessModal"
      class="modal-overlay modal-overlay--system"
      role="dialog"
@@ -399,12 +1055,12 @@
         <div class="modal-icon modal-icon--danger">
             <i class="fas fa-ban" aria-hidden="true"></i>
         </div>
-        <h3 id="blockedTitle" class="modal-title modal-title--danger">Acceso Denegado</h3>
-        <p class="modal-desc">
+        <h3 id="blockedTitle" class="modal-title modal-title--danger" data-i18n="modal.blocked.title">Acceso Denegado</h3>
+        <p class="modal-desc" data-i18n="modal.blocked.location">
             Esta plataforma solo está disponible para usuarios en <strong>Cuba</strong>.
         </p>
         <p id="blockedReason" class="modal-reason"></p>
-        <p class="modal-hint">
+        <p class="modal-hint" data-i18n="modal.blocked.hint">
             Si crees que esto es un error, verifica tu ubicación y desactiva cualquier VPN o proxy.
         </p>
     </div>
@@ -421,37 +1077,33 @@
         <div class="modal-icon modal-icon--warning">
             <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
         </div>
-        <h3 id="permissionsTitle" class="modal-title modal-title--warning">Permisos Requeridos</h3>
-        <p class="modal-desc">
+        <h3 id="permissionsTitle" class="modal-title modal-title--warning" data-i18n="modal.permissions.title">Permisos Requeridos</h3>
+        <p class="modal-desc" data-i18n="modal.permissions.content">
             Para usar esta plataforma, necesitamos los siguientes permisos:
         </p>
         <ul class="permission-checklist" aria-label="Estado de permisos">
             <li id="perm-geo">
                 <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
-                <span>Geolocalización</span>
+                <span data-i18n="perm.geolocation">Geolocalización</span>
                 <i class="fas fa-circle-question perm-status" aria-hidden="true"></i>
             </li>
             <li id="perm-storage">
                 <i class="fas fa-database" aria-hidden="true"></i>
-                <span>Almacenamiento local</span>
+                <span data-i18n="perm.storage">Almacenamiento local</span>
                 <i class="fas fa-circle-question perm-status" aria-hidden="true"></i>
             </li>
             <li id="perm-notif">
                 <i class="fas fa-bell" aria-hidden="true"></i>
-                <span>Notificaciones</span>
+                <span data-i18n="perm.notifications">Notificaciones</span>
                 <i class="fas fa-circle-question perm-status" aria-hidden="true"></i>
             </li>
         </ul>
         <button id="retryPermissionsBtn" class="btn btn--primary btn--wide" type="button">
             <i class="fas fa-rotate-right" aria-hidden="true"></i>
-            <span>Reintentar</span>
+            <span data-i18n="btn.retry">Reintentar</span>
         </button>
     </div>
 </div>
-
-<!-- ═══════════════════════════════════════════════════════════
-     MODALES DE CONTENIDO
-════════════════════════════════════════════════════════════ -->
 
 <!-- Modal: Aceptar Términos (obligatorio) -->
 <div id="acceptTermsModal"
@@ -464,103 +1116,49 @@
         <div class="modal-icon modal-icon--brand">
             <i class="fas fa-gavel" aria-hidden="true"></i>
         </div>
-        <h3 id="acceptTitle" class="modal-title">Aviso de Acceso</h3>
-        <p class="modal-desc">
+        <h3 id="acceptTitle" class="modal-title" data-i18n="modal.accept.title">Aviso de Acceso</h3>
+        <p class="modal-desc" data-i18n="modal.accept.desc">
             Para continuar, debes leer y aceptar nuestra <strong>Política de Privacidad</strong> y <strong>Términos de Uso</strong>.
         </p>
         <div class="terms-summary">
-            <p>
+            <p data-i18n="modal.accept.summary">
                 <i class="fas fa-info-circle" aria-hidden="true"></i>
                 Todos los números son generados aleatoriamente. El uso de esta plataforma es bajo tu exclusiva responsabilidad. Prohibido el uso para spam, acoso o actividades ilegales.
             </p>
         </div>
         <button id="acceptTermsBtn" class="btn btn--primary btn--wide" type="button">
             <i class="fas fa-check-circle" aria-hidden="true"></i>
-            <span>Aceptar y continuar</span>
+            <span data-i18n="btn.accept">Aceptar y continuar</span>
         </button>
-    </div>
-</div>
-
-<!-- Modal: Política de Privacidad -->
-<div id="privacyModal"
-     class="modal-overlay"
-     role="dialog"
-     aria-modal="true"
-     aria-labelledby="privacyTitle"
-     aria-hidden="true">
-    <div class="modal-content">
-        <h3 id="privacyTitle" class="modal-title">
-            <i class="fas fa-lock" aria-hidden="true"></i>
-            Política de Privacidad
-        </h3>
-        <div class="modal-body">
-            <p>No almacenamos ni procesamos datos personales de los propietarios de los números. Solo se muestran los números de contacto de forma anónima. El uso de la plataforma es bajo tu responsabilidad.</p>
-            <p>No utilizamos cookies de seguimiento ni compartimos información con terceros. Los datos de sesión se almacenan únicamente en tu dispositivo y se eliminan al cerrar el navegador.</p>
-        </div>
-        <div class="modal-footer">
-            <button class="modal-close btn btn--danger" type="button" aria-label="Cerrar política de privacidad">
-                <i class="fas fa-times" aria-hidden="true"></i>
-                <span>Cerrar</span>
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Modal: Términos de Uso -->
-<div id="termsModal"
-     class="modal-overlay"
-     role="dialog"
-     aria-modal="true"
-     aria-labelledby="termsTitle"
-     aria-hidden="true">
-    <div class="modal-content">
-        <h3 id="termsTitle" class="modal-title">
-            <i class="fas fa-file-contract" aria-hidden="true"></i>
-            Términos de Uso
-        </h3>
-        <div class="modal-body">
-            <p>Al usar esta plataforma, aceptas que:</p>
-            <ol class="terms-list">
-                <li><strong>Uso responsable:</strong> Está prohibido usar la plataforma para spam, acoso, extorsión, fraude o cualquier actividad ilegal.</li>
-                <li><strong>Exención de responsabilidad:</strong> No nos hacemos responsables por el mal uso de la información proporcionada.</li>
-                <li><strong>Números generados:</strong> Los números se generan algorítmicamente. No garantizamos su disponibilidad o actividad real.</li>
-                <li><strong>Reserva de derechos:</strong> Nos reservamos el derecho de modificar o discontinuar el servicio en cualquier momento.</li>
-            </ol>
-        </div>
-        <div class="modal-footer">
-            <button class="modal-close btn btn--danger" type="button" aria-label="Cerrar términos de uso">
-                <i class="fas fa-times" aria-hidden="true"></i>
-                <span>Cerrar</span>
-            </button>
-        </div>
     </div>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════
      SCRIPTS
-     Orden importante: seguridad → geo → permisos → db → api → main
+     Orden: seguridad → geo → permisos → db → api → main → menú → PWA
 ════════════════════════════════════════════════════════════ -->
-<script src="src/assets/js/security.js"     defer></script>
-<script src="src/assets/js/geo.js"          defer></script>
-<script src="src/assets/js/permissions.js"  defer></script>
-<script src="src/assets/js/db.js"           defer></script>
-<script src="src/assets/js/api.js"          defer></script>
-<script src="src/assets/js/main.js"         defer></script>
-<!-- Módulos de Internacionalización y Beta -->
-<script src="src/assets/js/i18n.js"                defer></script>
-<script src="src/assets/js/beta.js"                defer></script>
-<script src="src/assets/js/advanced-api.js"       defer></script>
-<script src="src/assets/js/beta-panel.js"         defer></script>
-<!-- Módulos de Seguridad Avanzada -->
-<script src="src/assets/js/geo-advanced.js"       defer></script>
-<script src="src/assets/js/permissions-advanced.js" defer></script>
-<script src="src/assets/js/security-advanced.js"  defer></script>
-<!-- Gestor de Descarga de APK -->
-<script src="src/assets/js/apk-download-manager.js" defer></script>
-<!-- PWA Security y Componentes UI Premium -->
-<script src="src/assets/js/pwa-security.js"       defer></script>
-<script src="src/assets/js/ui-components.js"      defer></script>
+<script src="src/assets/js/security.js"              defer></script>
+<script src="src/assets/js/geo.js"                   defer></script>
+<script src="src/assets/js/permissions.js"           defer></script>
+<script src="src/assets/js/db.js"                    defer></script>
+<script src="src/assets/js/api.js"                   defer></script>
+<script src="src/assets/js/main.js"                  defer></script>
+<!-- Internacionalización y Beta -->
+<script src="src/assets/js/i18n.js"                  defer></script>
+<script src="src/assets/js/beta.js"                  defer></script>
+<script src="src/assets/js/advanced-api.js"          defer></script>
+<script src="src/assets/js/beta-panel.js"            defer></script>
+<!-- Seguridad Avanzada -->
+<script src="src/assets/js/geo-advanced.js"          defer></script>
+<script src="src/assets/js/permissions-advanced.js"  defer></script>
+<script src="src/assets/js/security-advanced.js"     defer></script>
+<!-- PWA y UI -->
+<script src="src/assets/js/pwa-security.js"          defer></script>
+<script src="src/assets/js/pwa-install.js"           defer></script>
+<script src="src/assets/js/ui-components.js"         defer></script>
+<script src="src/assets/js/menu.js"                  defer></script>
+<script src="src/assets/js/themes.js"                defer></script>
 <!-- Service Worker Registration (PWA) -->
-<script src="src/assets/js/sw-register.js" defer></script>
+<script src="src/assets/js/sw-register.js"           defer></script>
 </body>
 </html>

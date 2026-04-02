@@ -87,14 +87,14 @@
             enabled: false,
             experimental: true,
         },
-        mobileAppDownload: {
-            id: 'mobileAppDownload',
-            name: 'Mobile App Download',
-            description: 'Download native Android application (APK)',
-            version: '3.0.0',
-            enabled: false,
-            experimental: true,
-            category: 'mobile',
+        pwaInstall: {
+            id: 'pwaInstall',
+            name: 'Instalación PWA Inteligente',
+            description: 'Instala la aplicación web progresiva directamente en tu dispositivo',
+            version: '4.0.0',
+            enabled: true,
+            experimental: false,
+            category: 'pwa',
         },
         aiContactSuggestions: {
             id: 'aiContactSuggestions',

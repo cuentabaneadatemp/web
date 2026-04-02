@@ -15,7 +15,7 @@
  * @version 3.0
  */
 
-const CACHE_VERSION = 'v3.0';
+const CACHE_VERSION = 'v4.0';
 const CACHE_NAME = `contactos-anonimos-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `contactos-anonimos-runtime-${CACHE_VERSION}`;
 const IMAGE_CACHE = `contactos-anonimos-images-${CACHE_VERSION}`;
@@ -24,23 +24,36 @@ const STATIC_ASSETS = [
     '/',
     '/index.html',
     '/manifest.json',
+    // CSS
     '/src/assets/css/main.css',
     '/src/assets/css/premium.css',
     '/src/assets/css/animations.css',
+    '/src/assets/css/menu.css',
+    '/src/assets/css/pwa.css',
+    '/src/assets/css/beta.css',
+    // JS Core
     '/src/assets/js/security.js',
     '/src/assets/js/geo.js',
     '/src/assets/js/permissions.js',
     '/src/assets/js/db.js',
     '/src/assets/js/api.js',
     '/src/assets/js/main.js',
+    // JS i18n y Beta
     '/src/assets/js/i18n.js',
     '/src/assets/js/beta.js',
     '/src/assets/js/advanced-api.js',
     '/src/assets/js/beta-panel.js',
+    // JS Avanzado
     '/src/assets/js/geo-advanced.js',
     '/src/assets/js/permissions-advanced.js',
     '/src/assets/js/security-advanced.js',
+    // PWA y UI
     '/src/assets/js/pwa-security.js',
+    '/src/assets/js/pwa-install.js',
+    '/src/assets/js/ui-components.js',
+    '/src/assets/js/menu.js',
+    '/src/assets/js/themes.js',
+    // Imágenes
     '/src/assets/img/favicon.svg',
     '/src/assets/img/pwa_icons/icon-192x192.png',
     '/src/assets/img/pwa_icons/icon-512x512.png',

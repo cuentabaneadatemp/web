@@ -14,7 +14,7 @@
  *   5. api.js       — Generación de números cubanos
  *
  * @module main
- * @version 2.0
+ * @version 4.0
  */
 
 (function () {
@@ -470,11 +470,13 @@
         if (DOM.themeRandom)    DOM.themeRandom.addEventListener('click', () => applyTheme('random'));
         if (DOM.shareChannel)   DOM.shareChannel.addEventListener('click', shareWhatsAppChannel);
 
-        // Botón de descarga de APK
-        const downloadAPKBtn = document.getElementById('downloadAPKBtn');
-        if (downloadAPKBtn && typeof window.APKDownloadManager !== 'undefined') {
-            downloadAPKBtn.addEventListener('click', () => {
-                window.APKDownloadManager.downloadAPK();
+        // Botón de instalación PWA en el footer
+        const footerPWABtn = document.getElementById('footerInstallPWA');
+        if (footerPWABtn) {
+            footerPWABtn.addEventListener('click', () => {
+                if (typeof PWA_INSTALL !== 'undefined') {
+                    PWA_INSTALL.installPWA();
+                }
             });
         }
 
@@ -631,6 +633,10 @@
         bindBetaBannerGesture();
         bindBetaToggle();
         applyTheme('greenblue');
+
+        // Inicializar módulos nuevos
+        if (typeof THEMES !== 'undefined') THEMES.init();
+        if (typeof MENU !== 'undefined') MENU.init();
 
         // Verificar permisos y ubicación antes de mostrar la app
         checkAccessRequirements().then((allowed) => {
