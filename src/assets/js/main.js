@@ -318,6 +318,14 @@
             root.style.setProperty('--grad-end',     t.gradEnd);
             document.body.style.background = `radial-gradient(ellipse at 30% 10%, ${t.gradStart}, ${t.gradEnd})`;
 
+        } else if (theme === 'experimental') {
+            root.style.setProperty('--primary-wa',   '#00f2ff');
+            root.style.setProperty('--primary-tg',   '#7000ff');
+            root.style.setProperty('--accent-color', '#00f2ff');
+            root.style.setProperty('--grad-start',   '#050505');
+            root.style.setProperty('--grad-end',     '#000000');
+            document.body.style.background = 'linear-gradient(180deg, #050505 0%, #000000 100%)';
+
         } else if (theme === 'random') {
             const hue1  = Math.floor(Math.random() * 360);
             const hue2  = (hue1 + 45) % 360;
@@ -620,6 +628,7 @@
 
         bindEvents();
         bindLanguageToggle();
+        bindBetaBannerGesture();
         bindBetaToggle();
         applyTheme('greenblue');
 
@@ -659,6 +668,64 @@
     /**
      * Vincula el botón de modo beta.
      */
+    /**
+     * Vincula el banner de la plataforma para activar/desactivar el modo beta.
+     * Un toque activa el modo beta.
+     * Dos toques rápidos (doble toque) desactivan el modo beta.
+     */
+    function bindBetaBannerGesture() {
+        const bannerLogo = document.querySelector('.css-logo');
+        if (!bannerLogo || typeof BETA === 'undefined') return;
+
+        let lastClickTime = 0;
+        let clickTimeout = null;
+        const DOUBLE_CLICK_DELAY = 300; // ms
+
+        bannerLogo.addEventListener('click', (e) => {
+            const currentTime = new Date().getTime();
+            const timeDiff = currentTime - lastClickTime;
+
+            if (timeDiff < DOUBLE_CLICK_DELAY) {
+                // DOBLE TOQUE: Desactivar modo beta
+                if (clickTimeout) {
+                    clearTimeout(clickTimeout);
+                    clickTimeout = null;
+                }
+                BETA.setBetaMode(false);
+                showToast('Modo Beta Desactivado', 2000);
+            } else {
+                // UN TOQUE: Programar activación si no hay segundo toque
+                clickTimeout = setTimeout(() => {
+                    if (!BETA.isBetaEnabled()) {
+                        BETA.setBetaMode(true);
+                        showToast('Modo Beta Activado — Estilo Experimental', 2000);
+                    }
+                    clickTimeout = null;
+                }, DOUBLE_CLICK_DELAY);
+            }
+
+            lastClickTime = currentTime;
+        });
+
+        // Escuchar cambios globales de modo beta para aplicar el estilo experimental
+        window.addEventListener('betamodechange', (e) => {
+            const isEnabled = e.detail.enabled;
+            document.body.classList.toggle('beta-mode-active', isEnabled);
+            
+            // Actualizar el tema si el modo beta está activado
+            if (isEnabled) {
+                applyTheme('experimental');
+            } else {
+                applyTheme('greenblue');
+            }
+        });
+
+        // Inicializar estado si ya estaba guardado
+        if (BETA.isBetaEnabled()) {
+            document.body.classList.add('beta-mode-active');
+        }
+    }
+
     function bindBetaToggle() {
         const betaToggle = document.getElementById('betaToggle');
         if (!betaToggle) return;
@@ -668,7 +735,7 @@
             BetaPanel.toggleBetaPanel();
         });
 
-        // Escuchar cambios de modo beta
+        // Escuchar cambios de modo beta para el botón (si existe)
         if (typeof window !== 'undefined') {
             window.addEventListener('betamodechange', (e) => {
                 betaToggle.classList.toggle('active', e.detail.enabled);

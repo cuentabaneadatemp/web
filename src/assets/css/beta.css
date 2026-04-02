@@ -263,3 +263,74 @@
 .beta-panel:not(.active) {
     animation: slideOutRight 0.3s ease-out;
 }
+
+/* ── Estilo Experimental Moderno (Modo Beta Activo) ─────────── */
+
+body.beta-mode-active {
+    --grad-start: #050505;
+    --grad-end: #000000;
+    --accent-color: #00f2ff; /* Cyan eléctrico experimental */
+    --primary-wa: #00f2ff;
+    --card-bg: rgba(255, 255, 255, 0.03);
+    --card-border: rgba(0, 242, 255, 0.2);
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+body.beta-mode-active .hero-banner {
+    background: linear-gradient(180deg, rgba(0, 242, 255, 0.1) 0%, transparent 100%);
+    border-bottom: 1px solid rgba(0, 242, 255, 0.3);
+    padding: 4rem 1rem;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body.beta-mode-active .logo-text {
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    font-weight: 800;
+    background: linear-gradient(90deg, #fff, #00f2ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 20px rgba(0, 242, 255, 0.5);
+}
+
+body.beta-mode-active .phone-card {
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--card-border);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8), inset 0 0 16px rgba(0, 242, 255, 0.05);
+    transform: perspective(1000px) rotateX(2deg);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+body.beta-mode-active .phone-card:hover {
+    transform: perspective(1000px) rotateX(0deg) translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0, 242, 255, 0.15);
+    border-color: rgba(0, 242, 255, 0.5);
+}
+
+body.beta-mode-active .wa-btn, 
+body.beta-mode-active .telegram-btn {
+    border-radius: 2px;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+
+/* Animación de pulso para el banner en modo beta */
+@keyframes beta-pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.8; text-shadow: 0 0 30px rgba(0, 242, 255, 0.8); }
+    100% { opacity: 1; }
+}
+
+body.beta-mode-active .css-logo {
+    animation: beta-pulse 3s infinite ease-in-out;
+    cursor: pointer;
+}
+
+/* Estilo para el banner cuando es interactivo */
+.css-logo {
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
