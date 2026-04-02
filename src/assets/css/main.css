@@ -649,6 +649,44 @@ footer {
     color: var(--primary-wa);
 }
 
+.footer-link--apk {
+    text-decoration: none;
+    background: linear-gradient(135deg, rgba(37, 211, 102, 0.15), rgba(38, 165, 228, 0.1));
+    border: 1px solid rgba(37, 211, 102, 0.3);
+    padding: 0.4rem 0.75rem;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-normal);
+    position: relative;
+    overflow: hidden;
+}
+
+.footer-link--apk::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left var(--transition-normal);
+}
+
+.footer-link--apk:hover {
+    color: var(--primary-wa);
+    border-color: var(--primary-wa);
+    background: linear-gradient(135deg, rgba(37, 211, 102, 0.25), rgba(38, 165, 228, 0.15));
+    box-shadow: 0 0 15px rgba(37, 211, 102, 0.3);
+    transform: translateY(-2px);
+}
+
+.footer-link--apk:hover::before {
+    left: 100%;
+}
+
+.footer-link--apk i {
+    font-size: 1.1em;
+}
+
 .footer-link:focus-visible {
     outline: 2px solid var(--accent-color);
     outline-offset: 2px;

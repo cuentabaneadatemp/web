@@ -113,6 +113,10 @@
             'info.about': 'Acerca de',
             'info.help': 'Ayuda',
             'info.feedback': 'Reportar Problema',
+
+            // Pie de página
+            'footer.download_apk': 'Descargar APK',
+            'footer.download_apk_title': 'Descargar aplicación para Android (1.3 KB)',
         },
 
         en: {
@@ -206,6 +210,10 @@
             'info.about': 'About',
             'info.help': 'Help',
             'info.feedback': 'Report Issue',
+
+            // Footer
+            'footer.download_apk': 'Download APK',
+            'footer.download_apk_title': 'Download Android app (1.3 KB)',
         },
     });
 
